@@ -26,6 +26,34 @@ class InvestScreenState extends State<InvestScreen> {
         child: ListView(
             children: [
           const ConnectWallet(),
+          Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Row(children: [
+                const SizedBox(width: 70),
+                const Expanded(
+                    flex: 8,
+                    child: Text(
+                      "Pool",
+                    )),
+                Flexible(
+                    flex: 5,
+                    fit: FlexFit.tight,
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Expanded(
+                              child: Center(
+                                  child: Text(
+                            'TVL',
+                          ))),
+                          SizedBox(width: 15),
+                          Expanded(
+                              child: Center(
+                                  child: Text(
+                            'APY[7D]',
+                          )))
+                        ]))
+              ])),
           ...model.pools.values.map((pool) => Row(children: [
                 Expanded(
                     child: Card(
@@ -34,53 +62,47 @@ class InvestScreenState extends State<InvestScreen> {
                   child: Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 25, horizontal: 15),
-                      child: Row(
-                          // crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Padding(
-                                padding: const EdgeInsets.only(right: 5),
-                                child: getASAiconWidget(
-                                    model.asaIconList, pool['asset_1'])),
-                            Padding(
-                                padding: const EdgeInsets.only(right: 20),
-                                child: getASAiconWidget(
-                                    model.asaIconList, pool['asset_2'])),
-                            Expanded(
-                                child: Text(
-                                    model.assets[pool['asset_1']]['unit_name'] +
-                                        ' / ' +
-                                        model.assets[pool['asset_2']]
-                                            ['unit_name'],
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700))),
-                            Row(children: [
-                              Padding(
-                                  padding: const EdgeInsets.only(right: 15),
-                                  child: Column(children: [
-                                    const Text('TVL',
-                                        style: TextStyle(fontSize: 12)),
-                                    Text(
-                                        '\$${formatNumber(pool['liquidity_in_usd'])}',
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700))
-                                  ])),
-                              Column(children: [
-                                const Text('APY[7D]',
-                                    style: TextStyle(fontSize: 12)),
-                                Text(
-                                    formatNumber(double.parse(pool[
-                                                    'annual_percentage_rate'] ??
-                                                '0') *
-                                            100) +
-                                        '%',
-                                    style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700))
-                              ])
-                            ])
-                          ])),
+                      child: Row(children: [
+                        const SizedBox(width: 5),
+                        SizedBox(
+                            width: 25,
+                            child: getASAiconWidget(
+                                model.asaIconList, pool.asset_1_id)),
+                        const SizedBox(width: 5),
+                        SizedBox(
+                            width: 25,
+                            child: getASAiconWidget(
+                                model.asaIconList, pool.asset_2_id)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                            flex: 8,
+                            child: Text(
+                                "${pool.asset_1_unit_name}/${pool.asset_2_unit_name}",
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700))),
+                        Flexible(
+                            flex: 5,
+                            fit: FlexFit.tight,
+                            child: Row(children: [
+                              Expanded(
+                                  child: Center(
+                                      child: Text('\$${formatNumber(pool.TVL)}',
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700)))),
+                              const SizedBox(width: 15),
+                              Expanded(
+                                  child: Center(
+                                      child: Text(
+                                          pool.APY != null
+                                              ? "${(pool.APY! * 100).toStringAsFixed(2)}%"
+                                              : "-",
+                                          style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700))))
+                            ]))
+                      ])),
                 )))
               ]))
         ].toList()),

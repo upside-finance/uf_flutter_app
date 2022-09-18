@@ -60,7 +60,7 @@ class MyScaffoldState extends State<MyScaffold> {
 
   @override
   void initState() {
-    Provider.of<AppModel>(context, listen: false).fetchASAiconList();
+    Provider.of<AppModel>(context, listen: false).init();
     super.initState();
   }
 
@@ -74,8 +74,8 @@ class MyScaffoldState extends State<MyScaffold> {
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.white,
-        body: SafeArea(
-            child: tabBody[TabItem.values.elementAt(_selectedIndex)] as Widget),
+        body:
+            SafeArea(child: tabBody[TabItem.values.elementAt(_selectedIndex)]!),
         bottomNavigationBar: BottomNavigationBar(
             items: TabItem.values
                 .map((tabItem) => BottomNavigationBarItem(

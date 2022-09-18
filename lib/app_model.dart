@@ -1,55 +1,282 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:algorand_dart/algorand_dart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import './helper.dart';
+
+enum Protocol { tinyman }
+
+const Map<Protocol, String> protocolName = {Protocol.tinyman: "Tinyman"};
+
+class Pool {
+  final String address;
+
+  final int asset_1_id;
+  final String asset_1_unit_name;
+
+  final int asset_2_id;
+  final String asset_2_unit_name;
+
+  final int liquidity_asset_id;
+  final String liquidity_asset_unit_name;
+
+  final double? TVL;
+  final double? APY;
+
+  final Protocol protocol;
+
+  const Pool(
+      {required this.address,
+      required this.asset_1_id,
+      required this.asset_1_unit_name,
+      required this.asset_2_id,
+      required this.asset_2_unit_name,
+      required this.liquidity_asset_id,
+      required this.liquidity_asset_unit_name,
+      required this.TVL,
+      required this.APY,
+      required this.protocol});
+}
+
+class LPposition {
+  final double marketValue;
+
+  final double poolShare;
+
+  final int asset_1_id;
+  final double asset_1_amount;
+  final double asset_1_in_usd;
+
+  final int asset_2_id;
+  final double asset_2_amount;
+  final double asset_2_in_usd;
+
+  final Protocol protocol;
+
+  const LPposition(
+      {required this.marketValue,
+      required this.poolShare,
+      required this.asset_1_id,
+      required this.asset_1_amount,
+      required this.asset_1_in_usd,
+      required this.asset_2_id,
+      required this.asset_2_amount,
+      required this.asset_2_in_usd,
+      required this.protocol});
+}
+
+final algoAsset = Asset(
+    index: 0,
+    params: AssetParameters(
+        decimals: 6,
+        creator: "",
+        total: 10000000000,
+        name: "Algo",
+        unitName: "ALGO"),
+    createdAtRound: 0,
+    deleted: false);
 
 class AppModel extends ChangeNotifier {
-  final Map<String, dynamic> pools = {};
-  final Map<String, dynamic> assets = {};
+  SharedPreferences? prefs;
+  final Map<String, Pool> pools = {};
+  final Map<int, Asset> assets = {0: algoAsset};
+  final Map<int, double> assetPrices = {};
   Map<String, dynamic> asaIconList = {};
+  List<LPposition> positions = [];
+  AccountInformation? accountInformation;
+  String? userAddress;
+
+  static const apiKey =
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  final algodClient =
+      AlgodClient(apiUrl: AlgoExplorer.MAINNET_ALGOD_API_URL, apiKey: apiKey);
+  final indexerClient = IndexerClient(
+      apiUrl: AlgoExplorer.MAINNET_INDEXER_API_URL, apiKey: apiKey);
+  late Algorand algorand;
+
+  AppModel() {
+    algorand = Algorand(
+      algodClient: algodClient,
+      indexerClient: indexerClient,
+    );
+  }
+
+  void init() async {
+    fetchTMPools();
+    fetchASAiconList();
+    await fetchAssetPrices();
+    setUserAddressFromSaved();
+  }
+
+  void setUserAddressFromSaved() async {
+    prefs = await SharedPreferences.getInstance();
+    String? savedUserAddress = prefs?.getString('userAddress');
+    savedUserAddress != null ? setUserAddress(savedUserAddress) : null;
+  }
+
+  void setUserAddress(String inputAddress) {
+    userAddress = inputAddress;
+    prefs?.setString('userAddress', inputAddress);
+    notifyListeners();
+    fetchAccountInfo().then((_) => fetchTMPositions());
+  }
+
+  Future<void> fetchAccountInfo() async {
+    if (userAddress != null) {
+      try {
+        accountInformation = await algorand.getAccountByAddress(userAddress!);
+        await Future.wait([
+          ...?accountInformation?.assets
+              .map((assetHolding) => fetchAsset(assetHolding.assetId))
+        ]);
+
+        notifyListeners();
+      } catch (e) {
+        print(e);
+      }
+    }
+  }
+
+  Future<void> fetchAsset(int id) async {
+    if (!assets.containsKey(id)) {
+      final assetResponse = await algorand.indexer().getAssetById(id);
+      assets[assetResponse.asset.index] = assetResponse.asset;
+    }
+  }
+
+  void fetchTMPositions() async {
+    await Future.wait([
+      ...?accountInformation?.assets.map((assetHolding) async {
+        String? creatorAdd = assets[assetHolding.assetId]?.params.creator;
+
+        final acctInfo = await algorand.getAccountByAddress(creatorAdd ?? '');
+
+        for (var appLocalState in acctInfo.appsLocalState) {
+          if (appLocalState.id == 552635992) {
+            var asset_1_id =
+                getValuefromTealKeyValueList(appLocalState.keyValue, "a1");
+            var asset_2_id =
+                getValuefromTealKeyValueList(appLocalState.keyValue, "a2");
+
+            await Future.wait([fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
+
+            var asset_1_reserves =
+                getValuefromTealKeyValueList(appLocalState.keyValue, "s1");
+            var asset_2_reserves =
+                getValuefromTealKeyValueList(appLocalState.keyValue, "s2");
+            var issued_liquidity =
+                getValuefromTealKeyValueList(appLocalState.keyValue, "ilt");
+
+            double poolShare = assetHolding.amount / issued_liquidity;
+
+            double asset_1_amount = assetAmountToScaled(
+                poolShare * asset_1_reserves,
+                assets[asset_1_id]?.params.decimals);
+            double asset_2_amount = assetAmountToScaled(
+                poolShare * asset_2_reserves,
+                assets[asset_2_id]?.params.decimals);
+
+            double asset_1_in_usd =
+                asset_1_amount * (assetPrices[asset_1_id] ?? 0);
+            double asset_2_in_usd =
+                asset_2_amount * (assetPrices[asset_2_id] ?? 0);
+
+            double marketValue = asset_1_in_usd + asset_2_in_usd;
+
+            positions.add(LPposition(
+                marketValue: marketValue,
+                poolShare: poolShare,
+                asset_1_id: asset_1_id,
+                asset_1_amount: asset_1_amount,
+                asset_1_in_usd: asset_1_in_usd,
+                asset_2_id: asset_2_id,
+                asset_2_amount: asset_2_amount,
+                asset_2_in_usd: asset_2_in_usd,
+                protocol: Protocol.tinyman));
+          }
+        }
+      })
+    ]);
+
+    notifyListeners();
+  }
+
+  Future<void> fetchAssetPrices() async {
+    try {
+      final response = await http.get(Uri.parse(
+          'https://mainnet.analytics.tinyman.org/api/v1/assets/prices/'));
+
+      if (response.statusCode == 200) {
+        final assetPricesJSON = jsonDecode(response.body);
+        assetPricesJSON.keys.forEach((assetID) =>
+            assetPrices[int.parse(assetID)] =
+                double.parse(assetPricesJSON[assetID]['price_in_usd']));
+        notifyListeners();
+      } else {
+        throw Exception(
+            'Failed to fetch asset prices from Tinyman - Status code ${response.statusCode}');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 
   void fetchASAiconList() async {
-    final response =
-        await http.get(Uri.parse('https://asa-list.tinyman.org/assets.json'));
+    try {
+      final response =
+          await http.get(Uri.parse('https://asa-list.tinyman.org/assets.json'));
 
-    if (response.statusCode == 200) {
-      asaIconList = jsonDecode(response.body);
-      notifyListeners();
-    } else {
-      throw Exception('Failed to load ASA icon list');
+      if (response.statusCode == 200) {
+        asaIconList = jsonDecode(response.body);
+        notifyListeners();
+      } else {
+        throw Exception(
+            'Failed to fetch ASA icon list - Status code ${response.statusCode}');
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
   void fetchTMPools() async {
-    final response = await http.get(Uri.parse(
-        'https://mainnet.analytics.tinyman.org/api/v1/pools/?limit=all&with_statistics=true&verified_only=true&ordering=-liquidity'));
+    try {
+      final response = await http.get(Uri.parse(
+          'https://mainnet.analytics.tinyman.org/api/v1/pools/?limit=all&with_statistics=true&verified_only=true&ordering=-liquidity'));
 
-    if (response.statusCode == 200) {
-      jsonDecode(response.body)['results'].forEach((pool) {
-        if (pool['address'] == null ||
-            pool['asset_1'] == null ||
-            pool['asset_2'] == null ||
-            pool['liquidity_asset'] == null) {
-          return;
-        }
+      if (response.statusCode == 200) {
+        jsonDecode(response.body)['results'].forEach((pool) {
+          if (pool['address'] == null ||
+              pool['asset_1'] == null ||
+              pool['asset_2'] == null ||
+              pool['liquidity_asset'] == null) {
+            return;
+          }
 
-        var address = pool['address'];
-        var asset_1 = pool['asset_1'];
-        var asset_2 = pool['asset_2'];
-        var liquidityAsset = pool['liquidity_asset'];
+          pools[pool['address']] = Pool(
+              address: pool['address'],
+              asset_1_id: int.parse(pool['asset_1']['id']),
+              asset_1_unit_name: pool['asset_1']['unit_name'],
+              asset_2_id: int.parse(pool['asset_2']['id']),
+              asset_2_unit_name: pool['asset_2']['unit_name'],
+              liquidity_asset_id: int.parse(pool['liquidity_asset']['id']),
+              liquidity_asset_unit_name: pool['liquidity_asset']['unit_name'],
+              TVL: pool['liquidity_in_usd'] != null
+                  ? double.parse(pool['liquidity_in_usd'])
+                  : null,
+              APY: pool['annual_percentage_yield'] != null
+                  ? double.parse(pool['annual_percentage_yield'])
+                  : null,
+              protocol: Protocol.tinyman);
+        });
 
-        pools[address] = pool;
-        pools[address]['asset_1'] = asset_1['id'];
-        pools[address]['asset_2'] = asset_2['id'];
-        pools[address]['liquidityAsset'] = liquidityAsset['id'];
-
-        assets[asset_1['id']] = asset_1;
-        assets[asset_2['id']] = asset_2;
-        assets[liquidityAsset['id']] = liquidityAsset;
-      });
-
-      notifyListeners();
-    } else {
-      throw Exception('Failed to load Tinyman pools');
+        notifyListeners();
+      } else {
+        throw Exception(
+            'Failed to fetch TM pools - Status code ${response.statusCode}');
+      }
+    } catch (e) {
+      print(e);
     }
   }
 }
