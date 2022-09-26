@@ -29,6 +29,7 @@ class ProtocolDetail {
 
 class Pool {
   final String address;
+  final int? appID;
 
   final int asset_1_id;
   final String asset_1_unit_name;
@@ -44,17 +45,29 @@ class Pool {
 
   final Protocol protocol;
 
-  const Pool(
-      {required this.address,
-      required this.asset_1_id,
-      required this.asset_1_unit_name,
-      required this.asset_2_id,
-      required this.asset_2_unit_name,
-      required this.liquidity_asset_id,
-      required this.liquidity_asset_unit_name,
-      required this.TVL,
-      required this.APY,
-      required this.protocol});
+  String genAddLiquidityLink() {
+    if (protocol == Protocol.tinyman) {
+      return "https://app.tinyman.org/#/pool/add-liquidity?asset_1=$asset_1_id&asset_2=$asset_2_id";
+    } else if (protocol == Protocol.pact) {
+      return "https://app.pact.fi/zap/$appID";
+    } else {
+      return "";
+    }
+  }
+
+  const Pool({
+    required this.address,
+    required this.asset_1_id,
+    required this.asset_1_unit_name,
+    required this.asset_2_id,
+    required this.asset_2_unit_name,
+    required this.liquidity_asset_id,
+    required this.liquidity_asset_unit_name,
+    required this.protocol,
+    this.TVL,
+    this.APY,
+    this.appID,
+  });
 }
 
 class LPposition {
@@ -321,13 +334,14 @@ class AppModel extends ChangeNotifier {
               asset_2_unit_name: pool['primary_asset']['unit_name'],
               liquidity_asset_id: pool['pool_asset']['algoid'],
               liquidity_asset_unit_name: pool['pool_asset']['unit_name'],
+              protocol: Protocol.pact,
               TVL: pool['tvl_usd'] != null
                   ? double.parse(pool['tvl_usd'])
                   : null,
               APY: pool['apr_7d_all'] != null
                   ? double.parse(pool['apr_7d_all'])
                   : null,
-              protocol: Protocol.pact);
+              appID: pool['appid']);
         });
 
         notifyListeners();

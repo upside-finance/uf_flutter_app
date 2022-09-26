@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../app_model.dart';
 import '../../helper.dart';
 import '../../widgets/connect_wallet.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class InvestScreen extends StatefulWidget {
   const InvestScreen({super.key});
@@ -12,12 +13,6 @@ class InvestScreen extends StatefulWidget {
 }
 
 class InvestScreenState extends State<InvestScreen> {
-  @override
-  void initState() {
-    Provider.of<AppModel>(context, listen: false).fetchTMPools();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
@@ -59,7 +54,8 @@ class InvestScreenState extends State<InvestScreen> {
               .map((pool) => Card(
                   elevation: 0,
                   child: InkWell(
-                    onTap: () => {},
+                    onTap: () =>
+                        launchUrl(Uri.parse(pool.genAddLiquidityLink())),
                     child: Stack(children: [
                       Row(children: [
                         const SizedBox(width: 5),
@@ -98,7 +94,9 @@ class InvestScreenState extends State<InvestScreen> {
                                   Expanded(
                                       child: Center(
                                           child: Text(
-                                              '\$${formatNumber(pool.TVL)}',
+                                              pool.TVL != null
+                                                  ? '\$${formatNumber(pool.TVL)}'
+                                                  : '-',
                                               style: const TextStyle(
                                                   fontSize: 14,
                                                   fontWeight:
