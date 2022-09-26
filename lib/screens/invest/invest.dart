@@ -22,21 +22,17 @@ class InvestScreenState extends State<InvestScreen> {
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
       return Padding(
-        padding: const EdgeInsets.only(left: 5, right: 5, top: 15),
+        padding: const EdgeInsets.only(top: 15),
         child: ListView(
             children: [
           const ConnectWallet(),
           Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
               child: Row(children: [
-                const SizedBox(width: 70),
-                const Expanded(
-                    flex: 8,
-                    child: Text(
-                      "Pool",
-                    )),
+                const SizedBox(width: 65),
+                const Expanded(flex: 8, child: Text('')),
                 Flexible(
-                    flex: 5,
+                    flex: 7,
                     fit: FlexFit.tight,
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -54,57 +50,74 @@ class InvestScreenState extends State<InvestScreen> {
                           )))
                         ]))
               ])),
-          ...model.pools.values.map((pool) => Row(children: [
-                Expanded(
-                    child: Card(
-                        child: InkWell(
-                  onTap: () => {},
-                  child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 25, horizontal: 15),
-                      child: Row(children: [
+          ...(model.pools.values.toList()
+                ..sort((a, b) => (a.TVL ?? 0) < (b.TVL ?? 0)
+                    ? 1
+                    : (a.TVL ?? 0) > (b.TVL ?? 0)
+                        ? -1
+                        : 0))
+              .map((pool) => Card(
+                  elevation: 0,
+                  child: InkWell(
+                    onTap: () => {},
+                    child: Stack(children: [
+                      Row(children: [
                         const SizedBox(width: 5),
                         SizedBox(
-                            width: 25,
-                            child: getASAiconWidget(
-                                model.asaIconList, pool.asset_1_id)),
-                        const SizedBox(width: 5),
-                        SizedBox(
-                            width: 25,
-                            child: getASAiconWidget(
-                                model.asaIconList, pool.asset_2_id)),
-                        const SizedBox(width: 10),
-                        Expanded(
-                            flex: 8,
-                            child: Text(
-                                "${pool.asset_1_unit_name}/${pool.asset_2_unit_name}",
-                                style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700))),
-                        Flexible(
-                            flex: 5,
-                            fit: FlexFit.tight,
-                            child: Row(children: [
-                              Expanded(
-                                  child: Center(
-                                      child: Text('\$${formatNumber(pool.TVL)}',
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700)))),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                  child: Center(
-                                      child: Text(
-                                          pool.APY != null
-                                              ? "${(pool.APY! * 100).toStringAsFixed(2)}%"
-                                              : "-",
-                                          style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700))))
-                            ]))
-                      ])),
-                )))
-              ]))
+                            width: 15,
+                            child: Image.asset(
+                                protocolMap[pool.protocol]?.logoURI ?? '')),
+                        const SizedBox(width: 3),
+                        Text(protocolMap[pool.protocol]?.shortName ?? '')
+                      ]),
+                      Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 25, horizontal: 5),
+                          child: Row(children: [
+                            SizedBox(
+                                width: 25,
+                                child: getASAiconWidget(
+                                    model.asaIconList, pool.asset_1_id)),
+                            const SizedBox(width: 5),
+                            SizedBox(
+                                width: 25,
+                                child: getASAiconWidget(
+                                    model.asaIconList, pool.asset_2_id)),
+                            const SizedBox(width: 10),
+                            Expanded(
+                                flex: 8,
+                                child: Text(
+                                    "${pool.asset_1_unit_name}/${pool.asset_2_unit_name}",
+                                    style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w700))),
+                            Flexible(
+                                flex: 7,
+                                fit: FlexFit.tight,
+                                child: Row(children: [
+                                  Expanded(
+                                      child: Center(
+                                          child: Text(
+                                              '\$${formatNumber(pool.TVL)}',
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight:
+                                                      FontWeight.w700)))),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                      child: Center(
+                                          child: Text(
+                                              pool.APY != null
+                                                  ? "${(pool.APY! * 100).toStringAsFixed(2)}%"
+                                                  : "-",
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight:
+                                                      FontWeight.w700))))
+                                ]))
+                          ]))
+                    ]),
+                  )))
         ].toList()),
       );
     });

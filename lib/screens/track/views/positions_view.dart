@@ -27,7 +27,7 @@ class PositionsView extends StatelessWidget {
                             model.asaIconList, position.asset_2_id)),
                     const SizedBox(width: 15),
                     Text(
-                        "${model.assets[position.asset_1_id]?.params.unitName}/${model.assets[position.asset_2_id]?.params.unitName} on ${protocolName[position.protocol]}",
+                        "${model.assets[position.asset_1_id]?.params.unitName}/${model.assets[position.asset_2_id]?.params.unitName} on ${protocolMap[position.protocol]?.name}",
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w700))
                   ]),

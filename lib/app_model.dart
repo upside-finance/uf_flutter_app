@@ -5,9 +5,27 @@ import 'package:algorand_dart/algorand_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './helper.dart';
 
-enum Protocol { tinyman }
+enum Protocol { tinyman, pact }
 
-const Map<Protocol, String> protocolName = {Protocol.tinyman: "Tinyman"};
+const Map<Protocol, ProtocolDetail> protocolMap = {
+  Protocol.tinyman: ProtocolDetail(
+      name: "Tinyman",
+      shortName: "TM",
+      logoURI: "assets/images/tinyman_app_icon.png"),
+  Protocol.pact: ProtocolDetail(
+      name: "PactFi",
+      shortName: "PF",
+      logoURI: "assets/images/pactfi_app_icon.png")
+};
+
+class ProtocolDetail {
+  final String name;
+  final String shortName;
+  final String logoURI;
+
+  const ProtocolDetail(
+      {required this.name, required this.shortName, required this.logoURI});
+}
 
 class Pool {
   final String address;
@@ -104,6 +122,7 @@ class AppModel extends ChangeNotifier {
 
   void init() async {
     fetchTMPools();
+    fetchPactPools();
     fetchASAiconList();
     await fetchAssetPrices();
     setUserAddressFromSaved();
@@ -274,6 +293,47 @@ class AppModel extends ChangeNotifier {
       } else {
         throw Exception(
             'Failed to fetch TM pools - Status code ${response.statusCode}');
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void fetchPactPools() async {
+    try {
+      final response = await http.get(
+          Uri.parse('https://api.pact.fi/api/pools/all?ordering=-tvl_usd'));
+
+      if (response.statusCode == 200) {
+        jsonDecode(response.body).forEach((pool) {
+          if (pool['address'] == null ||
+              pool['primary_asset'] == null ||
+              pool['secondary_asset'] == null ||
+              pool['pool_asset'] == null) {
+            return;
+          }
+
+          pools[pool['address']] = Pool(
+              address: pool['address'],
+              asset_1_id: pool['secondary_asset']['algoid'],
+              asset_1_unit_name: pool['secondary_asset']['unit_name'],
+              asset_2_id: pool['primary_asset']['algoid'],
+              asset_2_unit_name: pool['primary_asset']['unit_name'],
+              liquidity_asset_id: pool['pool_asset']['algoid'],
+              liquidity_asset_unit_name: pool['pool_asset']['unit_name'],
+              TVL: pool['tvl_usd'] != null
+                  ? double.parse(pool['tvl_usd'])
+                  : null,
+              APY: pool['apr_7d_all'] != null
+                  ? double.parse(pool['apr_7d_all'])
+                  : null,
+              protocol: Protocol.pact);
+        });
+
+        notifyListeners();
+      } else {
+        throw Exception(
+            'Failed to fetch Pact Fi pools - Status code ${response.statusCode}');
       }
     } catch (e) {
       print(e);
