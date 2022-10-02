@@ -101,7 +101,8 @@ final algoAsset = Asset(
     index: 0,
     params: AssetParameters(
         decimals: 6,
-        creator: "",
+        creator:
+            "V3ZJHYSUMAUZXMSPO6GNDO6QQUGB5OWCHNAB5A743TKYC3RWBPAL3P5IIA", // Random address
         total: 10000000000,
         name: "Algo",
         unitName: "ALGO"),
@@ -159,7 +160,14 @@ class AppModel extends ChangeNotifier {
   Future<void> fetchAccountInfo() async {
     if (userAddress != null) {
       try {
-        accountInformation = await algorand.getAccountByAddress(userAddress!);
+        var tempAccountInformation =
+            await algorand.getAccountByAddress(userAddress!);
+        tempAccountInformation.assets.add(AssetHolding(
+            amount: tempAccountInformation.amount,
+            assetId: 0,
+            creator: null,
+            isFrozen: false));
+        accountInformation = tempAccountInformation;
         await Future.wait([
           ...?accountInformation?.assets
               .map((assetHolding) => fetchAsset(assetHolding.assetId))
@@ -182,49 +190,52 @@ class AppModel extends ChangeNotifier {
   void fetchTMPositions() async {
     await Future.wait([
       ...?accountInformation?.assets.map((assetHolding) async {
-        String? creatorAdd = assets[assetHolding.assetId]?.params.creator;
+        var creatorAdd = assets[assetHolding.assetId]?.params.creator;
 
-        final acctInfo = await algorand.getAccountByAddress(creatorAdd ?? '');
+        if (creatorAdd != null) {
+          final acctInfo = await algorand.getAccountByAddress(creatorAdd);
 
-        for (var appLocalState in acctInfo.appsLocalState) {
-          if (appLocalState.id == 552635992) {
-            var parsedLocalState = convertTKVtoMap(appLocalState.keyValue);
+          for (var appLocalState in acctInfo.appsLocalState) {
+            if (appLocalState.id == 552635992) {
+              var parsedLocalState = convertTKVtoMap(appLocalState.keyValue);
 
-            var asset_1_id = parsedLocalState["a1"];
-            var asset_2_id = parsedLocalState["a2"];
+              var asset_1_id = parsedLocalState["a1"];
+              var asset_2_id = parsedLocalState["a2"];
 
-            await Future.wait([fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
+              await Future.wait(
+                  [fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
 
-            var asset_1_reserves = parsedLocalState["s1"];
-            var asset_2_reserves = parsedLocalState["s2"];
-            var issued_liquidity = parsedLocalState["ilt"];
+              var asset_1_reserves = parsedLocalState["s1"];
+              var asset_2_reserves = parsedLocalState["s2"];
+              var issued_liquidity = parsedLocalState["ilt"];
 
-            double poolShare = assetHolding.amount / issued_liquidity;
+              double poolShare = assetHolding.amount / issued_liquidity;
 
-            double asset_1_amount = assetAmountToScaled(
-                poolShare * asset_1_reserves,
-                assets[asset_1_id]?.params.decimals);
-            double asset_2_amount = assetAmountToScaled(
-                poolShare * asset_2_reserves,
-                assets[asset_2_id]?.params.decimals);
+              double asset_1_amount = assetAmountToScaled(
+                  poolShare * asset_1_reserves,
+                  assets[asset_1_id]?.params.decimals);
+              double asset_2_amount = assetAmountToScaled(
+                  poolShare * asset_2_reserves,
+                  assets[asset_2_id]?.params.decimals);
 
-            double asset_1_in_usd =
-                asset_1_amount * (assetPrices[asset_1_id] ?? 0);
-            double asset_2_in_usd =
-                asset_2_amount * (assetPrices[asset_2_id] ?? 0);
+              double asset_1_in_usd =
+                  asset_1_amount * (assetPrices[asset_1_id] ?? 0);
+              double asset_2_in_usd =
+                  asset_2_amount * (assetPrices[asset_2_id] ?? 0);
 
-            double marketValue = asset_1_in_usd + asset_2_in_usd;
+              double marketValue = asset_1_in_usd + asset_2_in_usd;
 
-            positions.add(LPposition(
-                marketValue: marketValue,
-                poolShare: poolShare,
-                asset_1_id: asset_1_id,
-                asset_1_amount: asset_1_amount,
-                asset_1_in_usd: asset_1_in_usd,
-                asset_2_id: asset_2_id,
-                asset_2_amount: asset_2_amount,
-                asset_2_in_usd: asset_2_in_usd,
-                protocol: Protocol.tinyman));
+              positions.add(LPposition(
+                  marketValue: marketValue,
+                  poolShare: poolShare,
+                  asset_1_id: asset_1_id,
+                  asset_1_amount: asset_1_amount,
+                  asset_1_in_usd: asset_1_in_usd,
+                  asset_2_id: asset_2_id,
+                  asset_2_amount: asset_2_amount,
+                  asset_2_in_usd: asset_2_in_usd,
+                  protocol: Protocol.tinyman));
+            }
           }
         }
       })
@@ -238,52 +249,55 @@ class AppModel extends ChangeNotifier {
       ...?accountInformation?.assets.map((assetHolding) async {
         final assetCreator = assets[assetHolding.assetId]?.params.creator;
 
-        if (pools.containsKey(assetCreator) &&
-            pools[assetCreator]?.protocol == Protocol.pact) {
-          final appRes = await algorand
-              .indexer()
-              .getApplicationById((pools[assetCreator]?.appID)!);
+        if (assetCreator != null) {
+          if (pools.containsKey(assetCreator) &&
+              pools[assetCreator]?.protocol == Protocol.pact) {
+            final appRes = await algorand
+                .indexer()
+                .getApplicationById((pools[assetCreator]?.appID)!);
 
-          var rawGlobalState = appRes.application?.params.globalState;
+            var rawGlobalState = appRes.application?.params.globalState;
 
-          if (rawGlobalState != null) {
-            var globalState = convertTKVtoMap(rawGlobalState);
+            if (rawGlobalState != null) {
+              var globalState = convertTKVtoMap(rawGlobalState);
 
-            var asset_1_id = (pools[assetCreator]?.asset_1_id)!;
-            var asset_2_id = (pools[assetCreator]?.asset_2_id)!;
+              var asset_1_id = (pools[assetCreator]?.asset_1_id)!;
+              var asset_2_id = (pools[assetCreator]?.asset_2_id)!;
 
-            await Future.wait([fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
+              await Future.wait(
+                  [fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
 
-            var asset_1_reserves = globalState["A"];
-            var asset_2_reserves = globalState["B"];
-            var issued_liquidity = globalState["L"];
+              var asset_1_reserves = globalState["A"];
+              var asset_2_reserves = globalState["B"];
+              var issued_liquidity = globalState["L"];
 
-            double poolShare = assetHolding.amount / issued_liquidity;
+              double poolShare = assetHolding.amount / issued_liquidity;
 
-            double asset_1_amount = assetAmountToScaled(
-                poolShare * asset_1_reserves,
-                assets[asset_1_id]?.params.decimals);
-            double asset_2_amount = assetAmountToScaled(
-                poolShare * asset_2_reserves,
-                assets[asset_2_id]?.params.decimals);
+              double asset_1_amount = assetAmountToScaled(
+                  poolShare * asset_1_reserves,
+                  assets[asset_1_id]?.params.decimals);
+              double asset_2_amount = assetAmountToScaled(
+                  poolShare * asset_2_reserves,
+                  assets[asset_2_id]?.params.decimals);
 
-            double asset_1_in_usd =
-                asset_1_amount * (assetPrices[asset_1_id] ?? 0);
-            double asset_2_in_usd =
-                asset_2_amount * (assetPrices[asset_2_id] ?? 0);
+              double asset_1_in_usd =
+                  asset_1_amount * (assetPrices[asset_1_id] ?? 0);
+              double asset_2_in_usd =
+                  asset_2_amount * (assetPrices[asset_2_id] ?? 0);
 
-            double marketValue = asset_1_in_usd + asset_2_in_usd;
+              double marketValue = asset_1_in_usd + asset_2_in_usd;
 
-            positions.add(LPposition(
-                marketValue: marketValue,
-                poolShare: poolShare,
-                asset_1_id: asset_1_id,
-                asset_1_amount: asset_1_amount,
-                asset_1_in_usd: asset_1_in_usd,
-                asset_2_id: asset_2_id,
-                asset_2_amount: asset_2_amount,
-                asset_2_in_usd: asset_2_in_usd,
-                protocol: Protocol.pact));
+              positions.add(LPposition(
+                  marketValue: marketValue,
+                  poolShare: poolShare,
+                  asset_1_id: asset_1_id,
+                  asset_1_amount: asset_1_amount,
+                  asset_1_in_usd: asset_1_in_usd,
+                  asset_2_id: asset_2_id,
+                  asset_2_amount: asset_2_amount,
+                  asset_2_in_usd: asset_2_in_usd,
+                  protocol: Protocol.pact));
+            }
           }
         }
       })
