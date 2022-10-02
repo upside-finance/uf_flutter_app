@@ -135,9 +135,8 @@ class AppModel extends ChangeNotifier {
 
   void init() async {
     fetchTMPools();
-    fetchPactPools();
     fetchASAiconList();
-    await fetchAssetPrices();
+    await Future.wait([fetchAssetPrices(), fetchPactPools()]);
     setUserAddressFromSaved();
   }
 
@@ -151,7 +150,10 @@ class AppModel extends ChangeNotifier {
     userAddress = inputAddress;
     prefs?.setString('userAddress', inputAddress);
     notifyListeners();
-    fetchAccountInfo().then((_) => fetchTMPositions());
+    fetchAccountInfo().then((_) {
+      fetchTMPositions();
+      fetchPFpositions();
+    });
   }
 
   Future<void> fetchAccountInfo() async {
@@ -186,19 +188,16 @@ class AppModel extends ChangeNotifier {
 
         for (var appLocalState in acctInfo.appsLocalState) {
           if (appLocalState.id == 552635992) {
-            var asset_1_id =
-                getValuefromTealKeyValueList(appLocalState.keyValue, "a1");
-            var asset_2_id =
-                getValuefromTealKeyValueList(appLocalState.keyValue, "a2");
+            var parsedLocalState = convertTKVtoMap(appLocalState.keyValue);
+
+            var asset_1_id = parsedLocalState["a1"];
+            var asset_2_id = parsedLocalState["a2"];
 
             await Future.wait([fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
 
-            var asset_1_reserves =
-                getValuefromTealKeyValueList(appLocalState.keyValue, "s1");
-            var asset_2_reserves =
-                getValuefromTealKeyValueList(appLocalState.keyValue, "s2");
-            var issued_liquidity =
-                getValuefromTealKeyValueList(appLocalState.keyValue, "ilt");
+            var asset_1_reserves = parsedLocalState["s1"];
+            var asset_2_reserves = parsedLocalState["s2"];
+            var issued_liquidity = parsedLocalState["ilt"];
 
             double poolShare = assetHolding.amount / issued_liquidity;
 
@@ -234,20 +233,96 @@ class AppModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void fetchPFpositions() async {
+    await Future.wait([
+      ...?accountInformation?.assets.map((assetHolding) async {
+        final assetCreator = assets[assetHolding.assetId]?.params.creator;
+
+        if (pools.containsKey(assetCreator) &&
+            pools[assetCreator]?.protocol == Protocol.pact) {
+          final appRes = await algorand
+              .indexer()
+              .getApplicationById((pools[assetCreator]?.appID)!);
+
+          var rawGlobalState = appRes.application?.params.globalState;
+
+          if (rawGlobalState != null) {
+            var globalState = convertTKVtoMap(rawGlobalState);
+
+            var asset_1_id = (pools[assetCreator]?.asset_1_id)!;
+            var asset_2_id = (pools[assetCreator]?.asset_2_id)!;
+
+            await Future.wait([fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
+
+            var asset_1_reserves = globalState["A"];
+            var asset_2_reserves = globalState["B"];
+            var issued_liquidity = globalState["L"];
+
+            double poolShare = assetHolding.amount / issued_liquidity;
+
+            double asset_1_amount = assetAmountToScaled(
+                poolShare * asset_1_reserves,
+                assets[asset_1_id]?.params.decimals);
+            double asset_2_amount = assetAmountToScaled(
+                poolShare * asset_2_reserves,
+                assets[asset_2_id]?.params.decimals);
+
+            double asset_1_in_usd =
+                asset_1_amount * (assetPrices[asset_1_id] ?? 0);
+            double asset_2_in_usd =
+                asset_2_amount * (assetPrices[asset_2_id] ?? 0);
+
+            double marketValue = asset_1_in_usd + asset_2_in_usd;
+
+            positions.add(LPposition(
+                marketValue: marketValue,
+                poolShare: poolShare,
+                asset_1_id: asset_1_id,
+                asset_1_amount: asset_1_amount,
+                asset_1_in_usd: asset_1_in_usd,
+                asset_2_id: asset_2_id,
+                asset_2_amount: asset_2_amount,
+                asset_2_in_usd: asset_2_in_usd,
+                protocol: Protocol.pact));
+          }
+        }
+      })
+    ]);
+
+    notifyListeners();
+  }
+
   Future<void> fetchAssetPrices() async {
     try {
-      final response = await http.get(Uri.parse(
+      final TMresponse = await http.get(Uri.parse(
           'https://mainnet.analytics.tinyman.org/api/v1/assets/prices/'));
 
-      if (response.statusCode == 200) {
-        final assetPricesJSON = jsonDecode(response.body);
-        assetPricesJSON.keys.forEach((assetID) =>
+      if (TMresponse.statusCode == 200) {
+        final TMassetPricesJSON = jsonDecode(TMresponse.body);
+        TMassetPricesJSON.keys.forEach((assetID) =>
             assetPrices[int.parse(assetID)] =
-                double.parse(assetPricesJSON[assetID]['price_in_usd']));
+                double.parse(TMassetPricesJSON[assetID]['price_in_usd']));
+
+        final PFresponse = await http.get(
+            Uri.parse('https://api.pact.fi/api/assets/all?ordering=-tvl_usd'));
+
+        if (PFresponse.statusCode == 200) {
+          final PFassetPricesJSON = jsonDecode(PFresponse.body);
+          PFassetPricesJSON.forEach((assetDetail) =>
+              assetPrices[assetDetail['algoid']] == null &&
+                      assetDetail['price'] != null
+                  ? (assetPrices[assetDetail['algoid']] =
+                      double.parse(assetDetail['price']))
+                  : null);
+        } else {
+          throw Exception(
+              'Failed to fetch asset prices from PactFi - Status code ${PFresponse.statusCode}');
+        }
+
         notifyListeners();
       } else {
         throw Exception(
-            'Failed to fetch asset prices from Tinyman - Status code ${response.statusCode}');
+            'Failed to fetch asset prices from Tinyman - Status code ${TMresponse.statusCode}');
       }
     } catch (e) {
       print(e);
@@ -312,7 +387,7 @@ class AppModel extends ChangeNotifier {
     }
   }
 
-  void fetchPactPools() async {
+  Future<void> fetchPactPools() async {
     try {
       final response = await http.get(
           Uri.parse('https://api.pact.fi/api/pools/all?ordering=-tvl_usd'));

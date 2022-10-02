@@ -39,11 +39,13 @@ String getAbbreviatedAddress(String address) {
   return "${address.substring(0, 5)}...${address.substring(address.length - 5, address.length)}";
 }
 
-dynamic getValuefromTealKeyValueList(
-    List<TealKeyValue> keyvalue, String plainKey) {
-  for (var k in keyvalue) {
-    if (k.key == base64Encode(utf8.encode(plainKey))) {
-      return (k.value.type == 2 ? k.value.uint : k.value.bytes);
-    }
+Map<String, dynamic> convertTKVtoMap(List<TealKeyValue> keyvalue) {
+  final Map<String, dynamic> state = {};
+
+  for (var tkv in keyvalue) {
+    var value = tkv.value.type == 2 ? tkv.value.uint : tkv.value.bytes;
+    state[utf8.decode(base64Decode(tkv.key), allowMalformed: true)] = value;
   }
+
+  return state;
 }
