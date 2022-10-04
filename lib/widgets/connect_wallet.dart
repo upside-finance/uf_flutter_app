@@ -36,6 +36,9 @@ class ConnectWalletState extends State<ConnectWallet> {
                               Provider.of<AppModel>(context, listen: false)
                                   .setUserAddress(inputAddress);
                               Navigator.pop(context, 'OK');
+                              model.fbAnalytics?.logEvent(
+                                  name: "Connect wallet",
+                                  parameters: {"Input address": inputAddress});
                             },
                             child: const Text('OK'))
                       ],

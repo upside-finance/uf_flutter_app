@@ -52,6 +52,9 @@ class TrackScreenState extends State<TrackScreen> {
                         child: ChoiceChip(
                             selected: _selectedIndex == entry.key,
                             onSelected: (_) {
+                              model.fbAnalytics?.logEvent(
+                                  name: "Track page view select",
+                                  parameters: {"View": entry.value.choiceName});
                               setState(() {
                                 _selectedIndex = entry.key;
                               });

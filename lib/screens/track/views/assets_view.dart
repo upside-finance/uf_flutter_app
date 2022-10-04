@@ -9,6 +9,8 @@ class AssetsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
+      model.fbAnalytics?.setCurrentScreen(screenName: "Track - Assets");
+
       return ListView(children: [
         ...?model.accountInformation?.assets.map((assetHolding) {
           final asset = model.assets[assetHolding.assetId];

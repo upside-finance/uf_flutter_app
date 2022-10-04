@@ -9,6 +9,8 @@ class PositionsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
+      model.fbAnalytics?.setCurrentScreen(screenName: "Track - Positions");
+
       return ListView(children: [
         ...model.positions.map((position) => Card(
             child: Padding(

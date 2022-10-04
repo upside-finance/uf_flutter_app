@@ -16,6 +16,8 @@ class InvestScreenState extends State<InvestScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
+      model.fbAnalytics?.setCurrentScreen(screenName: "Invest");
+
       return Padding(
         padding: const EdgeInsets.only(top: 15),
         child: ListView(
@@ -54,8 +56,16 @@ class InvestScreenState extends State<InvestScreen> {
               .map((pool) => Card(
                   elevation: 0,
                   child: InkWell(
-                    onTap: () =>
-                        launchUrl(Uri.parse(pool.genAddLiquidityLink())),
+                    onTap: () {
+                      model.fbAnalytics
+                          ?.logEvent(name: "One-click invest", parameters: {
+                        "Pool Address": pool.address,
+                        "Pool":
+                            "${pool.asset_1_unit_name} / ${pool.asset_2_unit_name}",
+                        "Protocol": protocolMap[pool.protocol]?.name
+                      });
+                      launchUrl(Uri.parse(pool.genAddLiquidityLink()));
+                    },
                     child: Stack(children: [
                       Row(children: [
                         const SizedBox(width: 5),

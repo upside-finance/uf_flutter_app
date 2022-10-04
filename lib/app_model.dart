@@ -5,6 +5,10 @@ import 'package:algorand_dart/algorand_dart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './helper.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+
 enum Protocol { tinyman, pact }
 
 const Map<Protocol, ProtocolDetail> protocolMap = {
@@ -127,6 +131,10 @@ class AppModel extends ChangeNotifier {
       apiUrl: AlgoExplorer.MAINNET_INDEXER_API_URL, apiKey: apiKey);
   late Algorand algorand;
 
+  FirebaseApp? fbApp;
+  FirebaseAnalytics? fbAnalytics;
+  FirebaseAnalyticsObserver? fbObserver;
+
   AppModel() {
     algorand = Algorand(
       algodClient: algodClient,
@@ -139,6 +147,11 @@ class AppModel extends ChangeNotifier {
     fetchASAiconList();
     await Future.wait([fetchAssetPrices(), fetchPactPools()]);
     setUserAddressFromSaved();
+    fbApp = await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    fbAnalytics = FirebaseAnalytics.instance;
+    fbObserver = FirebaseAnalyticsObserver(analytics: fbAnalytics!);
   }
 
   void setUserAddressFromSaved() async {
@@ -148,6 +161,7 @@ class AppModel extends ChangeNotifier {
   }
 
   void setUserAddress(String inputAddress) {
+    fbAnalytics?.setUserId(id: inputAddress);
     userAddress = inputAddress;
     prefs?.setString('userAddress', inputAddress);
     notifyListeners();

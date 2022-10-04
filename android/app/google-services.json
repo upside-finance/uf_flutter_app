@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "206893229269",
+    "project_id": "upsidefinance-flutter-app",
+    "storage_bucket": "upsidefinance-flutter-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206893229269:android:4cf2870673b4ce7f3e2e5c",
+        "android_client_info": {
+          "package_name": "com.example.uf_flutter_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "206893229269-be6chb5vii57coe679j851vbj9hvb3ev.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGosVgiVN1_qLgMlElkLS68MxDkV-A1A8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "206893229269-be6chb5vii57coe679j851vbj9hvb3ev.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "206893229269-ac22mqns6tpsbunmkd8h0pavdv490q3g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ufFlutterApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
