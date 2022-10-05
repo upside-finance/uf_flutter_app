@@ -28,7 +28,7 @@ class ConnectWalletState extends State<ConnectWallet> {
                   'https://instantshuffle.com/shuffle/6ljm0bXK9UEaSChJ1v7S'));
             },
             child: const Text("BUY NFT")),
-        IconButton(
+        TextButton(
             onPressed: () {
               if (model.userAddress == null) {
                 showDialog(
@@ -36,9 +36,12 @@ class ConnectWalletState extends State<ConnectWallet> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: const Text('Input wallet address'),
-                        content: TextField(onChanged: (text) {
-                          inputAddress = text;
-                        }),
+                        content: TextField(
+                            onChanged: (text) {
+                              inputAddress = text;
+                            },
+                            decoration: const InputDecoration(
+                                hintText: 'E.g. 7BZEUI...')),
                         actions: <Widget>[
                           TextButton(
                               onPressed: () => Navigator.pop(context, 'Cancel'),
@@ -63,9 +66,15 @@ class ConnectWalletState extends State<ConnectWallet> {
                     .disconnectWallet();
               }
             },
-            icon: const Icon(Icons.account_balance_wallet_outlined)),
-        if (model.userAddress != null)
-          Text(getAbbreviatedAddress(model.userAddress!))
+            child: Row(children: [
+              const Icon(Icons.account_balance_wallet_outlined),
+              model.userAddress == null
+                  ? const SizedBox(width: 3)
+                  : Text(getAbbreviatedAddress(model.userAddress!)),
+              if (model.userAddress == null) const Text("CONNECT WALLET")
+            ])),
+        // if (model.userAddress != null)
+        //   Text(getAbbreviatedAddress(model.userAddress!))
       ]);
     });
   }
