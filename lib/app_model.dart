@@ -171,6 +171,16 @@ class AppModel extends ChangeNotifier {
     });
   }
 
+  void disconnectWallet() {
+    if (userAddress != null) {
+      userAddress = null;
+      prefs?.clear();
+      accountInformation = null;
+      positions.clear();
+      notifyListeners();
+    }
+  }
+
   Future<void> fetchAccountInfo() async {
     if (userAddress != null) {
       try {

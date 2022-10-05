@@ -19,31 +19,38 @@ class ConnectWalletState extends State<ConnectWallet> {
       return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
         IconButton(
             onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Input wallet address'),
-                      content: TextField(onChanged: (text) {
-                        inputAddress = text;
-                      }),
-                      actions: <Widget>[
-                        TextButton(
-                            onPressed: () => Navigator.pop(context, 'Cancel'),
-                            child: const Text('Cancel')),
-                        TextButton(
-                            onPressed: () {
-                              Provider.of<AppModel>(context, listen: false)
-                                  .setUserAddress(inputAddress);
-                              Navigator.pop(context, 'OK');
-                              model.fbAnalytics?.logEvent(
-                                  name: "Connect wallet",
-                                  parameters: {"Input address": inputAddress});
-                            },
-                            child: const Text('OK'))
-                      ],
-                    );
-                  });
+              if (model.userAddress == null) {
+                showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Input wallet address'),
+                        content: TextField(onChanged: (text) {
+                          inputAddress = text;
+                        }),
+                        actions: <Widget>[
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, 'Cancel'),
+                              child: const Text('Cancel')),
+                          TextButton(
+                              onPressed: () {
+                                Provider.of<AppModel>(context, listen: false)
+                                    .setUserAddress(inputAddress);
+                                Navigator.pop(context, 'OK');
+                                model.fbAnalytics?.logEvent(
+                                    name: "Connect wallet",
+                                    parameters: {
+                                      "Input address": inputAddress
+                                    });
+                              },
+                              child: const Text('OK'))
+                        ],
+                      );
+                    });
+              } else {
+                Provider.of<AppModel>(context, listen: false)
+                    .disconnectWallet();
+              }
             },
             icon: const Icon(Icons.account_balance_wallet_outlined)),
         if (model.userAddress != null)
