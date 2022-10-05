@@ -34,11 +34,11 @@ class TrackScreenState extends State<TrackScreen> {
           padding: const EdgeInsets.only(left: 5, right: 5, top: 15),
           child: Column(children: [
             const ConnectWallet(),
-            LimitedBox(
-                maxHeight: 200,
-                child: Row(children: [
-                  Expanded(child: DonutAutoLabelChart.withSampleData())
-                ])),
+            // LimitedBox(
+            //     maxHeight: 200,
+            //     child: Row(children: [
+            //       Expanded(child: DonutAutoLabelChart.withSampleData())
+            //     ])),
             Row(
               children: [
                 const SizedBox(width: 10),

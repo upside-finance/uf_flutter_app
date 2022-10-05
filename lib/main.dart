@@ -51,8 +51,8 @@ const Map<TabItem, IconData> tabIcon = {
 const Map<TabItem, Widget> tabBody = {
   TabItem.track: TrackScreen(),
   TabItem.invest: InvestScreen(),
-  TabItem.swap: Center(child: Text('LAM World')),
-  TabItem.settings: SettingsScreen(),
+  TabItem.swap: Center(child: Text('Coming soon')),
+  TabItem.settings: Center(child: Text('Coming soon')),
 };
 
 class MyScaffoldState extends State<MyScaffold> {
