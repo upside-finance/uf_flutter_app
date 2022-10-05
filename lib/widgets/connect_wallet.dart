@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../app_model.dart';
 import '../helper.dart';
 
@@ -17,6 +18,16 @@ class ConnectWalletState extends State<ConnectWallet> {
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
       return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        TextButton(
+            style: TextButton.styleFrom(
+              textStyle: const TextStyle(fontSize: 15),
+            ),
+            onPressed: () {
+              model.fbAnalytics?.logEvent(name: "Buy NFT click");
+              launchUrl(Uri.parse(
+                  'https://instantshuffle.com/shuffle/6ljm0bXK9UEaSChJ1v7S'));
+            },
+            child: const Text("BUY NFT")),
         IconButton(
             onPressed: () {
               if (model.userAddress == null) {
