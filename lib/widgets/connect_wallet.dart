@@ -20,7 +20,7 @@ class ConnectWalletState extends State<ConnectWallet> {
       return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
         TextButton(
             style: TextButton.styleFrom(
-              textStyle: const TextStyle(fontSize: 15),
+              textStyle: const TextStyle(fontSize: 12),
             ),
             onPressed: () {
               model.fbAnalytics?.logEvent(name: "Buy NFT click");
@@ -71,7 +71,11 @@ class ConnectWalletState extends State<ConnectWallet> {
               model.userAddress == null
                   ? const SizedBox(width: 3)
                   : Text(getAbbreviatedAddress(model.userAddress!)),
-              if (model.userAddress == null) const Text("CONNECT WALLET")
+              if (model.userAddress == null)
+                const Text(
+                  "CONNECT WALLET",
+                  style: TextStyle(fontSize: 12),
+                )
             ])),
         // if (model.userAddress != null)
         //   Text(getAbbreviatedAddress(model.userAddress!))
