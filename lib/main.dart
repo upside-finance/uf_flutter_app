@@ -26,7 +26,9 @@ class MyApp extends StatelessWidget {
         title: "UpsideFinance",
         home: MyScaffold(),
         debugShowCheckedModeBanner: false,
+        themeMode: ThemeMode.dark,
         theme: ThemeData(
+          brightness: Brightness.dark,
           splashFactory: NoSplash.splashFactory,
           appBarTheme: const AppBarTheme(
               color: Color(0xFF2E2E2E), shadowColor: Colors.transparent),

@@ -16,7 +16,7 @@ class _BottomBarState extends State<BottomBar> {
 
   static final List<Widget> _widgetOptions = <Widget>[
     const TrackScreen(),
-    const Text("Swap screen coming soon"),
+    const InvestScreen(),
     const Text("Swap screen coming soon"),
     const Text("Profile screen coming soon"),
   ];
