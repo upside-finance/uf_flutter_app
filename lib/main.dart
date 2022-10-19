@@ -21,10 +21,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: MediaQueryData(),
+      data: const MediaQueryData(),
       child: MaterialApp(
         title: "UpsideFinance",
-        home: MyScaffold(),
+        home: const MyScaffold(),
         debugShowCheckedModeBanner: false,
         themeMode: ThemeMode.dark,
         theme: ThemeData(
@@ -34,6 +34,8 @@ class MyApp extends StatelessWidget {
               color: Color(0xFF2E2E2E), shadowColor: Colors.transparent),
           scaffoldBackgroundColor: const Color(0xFF2E2E2E),
           primarySwatch: Colors.grey,
+          textButtonTheme: const TextButtonThemeData(
+              style: ButtonStyle(splashFactory: NoSplash.splashFactory)),
         ),
       ),
     );

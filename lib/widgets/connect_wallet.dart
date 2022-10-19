@@ -1,5 +1,8 @@
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:uf_flutter_app/utils/app_layout.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../app_model.dart';
 import '../helper.dart';
@@ -29,6 +32,7 @@ class ConnectWalletState extends State<ConnectWallet> {
             },
             child: const Text("BUY NFT")),
         TextButton(
+            style: TextButton.styleFrom(padding: const EdgeInsets.all(0)),
             onPressed: () {
               if (model.userAddress == null) {
                 showDialog(
@@ -36,16 +40,35 @@ class ConnectWalletState extends State<ConnectWallet> {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: const Text('Input wallet address'),
+                        backgroundColor: const Color(0xFF505050),
+                        elevation: 20,
+                        shape: SmoothRectangleBorder(
+                            borderRadius: SmoothBorderRadius(
+                                cornerRadius: 22, cornerSmoothing: 1)),
                         content: TextField(
-                            onChanged: (text) {
-                              inputAddress = text;
-                            },
-                            decoration: const InputDecoration(
-                                hintText: 'E.g. 7BZEUI...')),
+                          style: const TextStyle(color: Color(0xFF161616)),
+                          onChanged: (text) {
+                            inputAddress = text;
+                          },
+                          decoration: const InputDecoration(
+                            filled: true,
+                            fillColor: Color(0xFFD9D9D9),
+                            hintText: 'E.g. 7BZEUI...',
+                            hintStyle: TextStyle(color: Color(0xFFA0A0A0)),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 0),
+                            border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(10))),
+                          ),
+                        ),
                         actions: <Widget>[
                           TextButton(
                               onPressed: () => Navigator.pop(context, 'Cancel'),
-                              child: const Text('Cancel')),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(color: Colors.white),
+                              )),
                           TextButton(
                               onPressed: () {
                                 Provider.of<AppModel>(context, listen: false)
@@ -57,7 +80,10 @@ class ConnectWalletState extends State<ConnectWallet> {
                                       "Input address": inputAddress
                                     });
                               },
-                              child: const Text('OK'))
+                              child: const Text(
+                                'OK',
+                                style: TextStyle(color: Colors.white),
+                              ))
                         ],
                       );
                     });
@@ -66,17 +92,38 @@ class ConnectWalletState extends State<ConnectWallet> {
                     .disconnectWallet();
               }
             },
-            child: Row(children: [
-              const Icon(Icons.account_balance_wallet_outlined),
-              model.userAddress == null
-                  ? const SizedBox(width: 3)
-                  : Text(getAbbreviatedAddress(model.userAddress!)),
-              if (model.userAddress == null)
-                const Text(
-                  "CONNECT WALLET",
-                  style: TextStyle(fontSize: 12),
-                )
-            ])),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  vertical: AppLayout.getHeight(8),
+                  horizontal: AppLayout.getWidth(9)),
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+                color: Color(0xFF505050),
+              ),
+              child: Row(children: [
+                const FaIcon(
+                  FontAwesomeIcons.wallet,
+                  size: 20,
+                  color: Colors.white,
+                ),
+                const SizedBox(
+                  width: 7,
+                ),
+                model.userAddress == null
+                    ? const SizedBox(width: 3)
+                    : Text(
+                        getAbbreviatedAddress(model.userAddress!),
+                        style: const TextStyle(
+                          fontSize: 13,
+                        ),
+                      ),
+                if (model.userAddress == null)
+                  const Text(
+                    "Connect Wallet",
+                    style: TextStyle(fontSize: 13, color: Colors.white),
+                  )
+              ]),
+            )),
         // if (model.userAddress != null)
         //   Text(getAbbreviatedAddress(model.userAddress!))
       ]);

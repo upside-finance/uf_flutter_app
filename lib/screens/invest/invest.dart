@@ -173,6 +173,8 @@ class InvestScreenState extends State<InvestScreen> {
                                         //TVL and APY
                                         Row(children: [
                                           Column(
+                                            // crossAxisAlignment:
+                                            //     CrossAxisAlignment.end,
                                             children: [
                                               const Text(
                                                 "TVL",
