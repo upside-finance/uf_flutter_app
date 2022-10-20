@@ -6,9 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uf_flutter_app/screens/bottom_bar.dart';
 import './app_model.dart';
-import 'screens/settings/settings.dart';
-import 'screens/invest/invest.dart';
-import 'screens/track/track.dart';
 
 void main() {
   runApp(ChangeNotifierProvider(
@@ -58,6 +55,6 @@ class MyScaffoldState extends State<MyScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return BottomBar();
+    return const BottomBar();
   }
 }

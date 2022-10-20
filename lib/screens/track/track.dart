@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../widgets/connect_wallet.dart';
-import './test.dart';
 import 'package:provider/provider.dart';
 import '../../app_model.dart';
 import './views/assets_view.dart';
