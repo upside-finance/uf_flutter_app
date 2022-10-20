@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_layout.dart';
 import '../../widgets/connect_wallet.dart';
 import './test.dart';
 import 'package:provider/provider.dart';
@@ -30,15 +31,39 @@ class TrackScreenState extends State<TrackScreen> {
   @override
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
-      return Padding(
-          padding: const EdgeInsets.only(left: 5, right: 5, top: 15),
-          child: Column(children: [
-            const ConnectWallet(),
-            // LimitedBox(
-            //     maxHeight: 200,
-            //     child: Row(children: [
-            //       Expanded(child: DonutAutoLabelChart.withSampleData())
-            //     ])),
+      return Scaffold(
+          appBar: AppBar(title: const ConnectWallet()),
+          body: Column(children: [
+            Padding(
+              padding: EdgeInsets.all(AppLayout.getHeight(20)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Net worth",
+                    style: TextStyle(color: Colors.grey.shade400),
+                  ),
+                  Row(
+                    children: const [
+                      Text(
+                        "USD ",
+                        style: TextStyle(
+                            color: Color(0xFF25CED1),
+                            fontSize: 30,
+                            fontWeight: FontWeight.w300),
+                      ),
+                      Text(
+                        "****",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w300),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
             Row(
               children: [
                 const SizedBox(width: 10),
@@ -63,7 +88,26 @@ class TrackScreenState extends State<TrackScreen> {
                     .toList(),
               ],
             ),
-            Expanded(child: choices[_selectedIndex].choiceWidget),
+            Expanded(
+                child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF2E2E2E),
+                    Colors.transparent,
+                    Colors.transparent,
+                    Color(0xFF2E2E2E),
+                  ],
+                  stops: [0.0, 0.02, 0.9, 1.0],
+                ).createShader(bounds);
+              },
+              blendMode: BlendMode.dstOut,
+              child: Expanded(
+                child: choices[_selectedIndex].choiceWidget,
+              ),
+            )),
           ]));
     });
   }

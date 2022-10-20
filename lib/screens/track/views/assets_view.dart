@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:uf_flutter_app/utils/app_layout.dart';
 import '../../../app_model.dart';
 import '../../../helper.dart';
 
@@ -12,13 +13,19 @@ class AssetsView extends StatelessWidget {
       model.fbAnalytics?.setCurrentScreen(screenName: "Track - Assets");
 
       return ListView(children: [
-        ...?model.accountInformation?.assets.map((assetHolding) {
-          final asset = model.assets[assetHolding.assetId];
-          final assetParams = asset?.params;
+        const SizedBox(
+          height: 30,
+        ),
+        ...?model.accountInformation?.assets.map(
+          (assetHolding) {
+            final asset = model.assets[assetHolding.assetId];
+            final assetParams = asset?.params;
 
-          return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: Row(children: [
+            return Column(children: [
+              const SizedBox(
+                height: 15,
+              ),
+              Row(children: [
                 const SizedBox(width: 10),
                 SizedBox(
                     width: 35,
@@ -32,10 +39,12 @@ class AssetsView extends StatelessWidget {
                           Text("${assetParams?.name}",
                               overflow: TextOverflow.fade,
                               style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w700)),
+                                  fontSize: 16, fontWeight: FontWeight.w500)),
                           const SizedBox(height: 2),
                           Text(
-                              "${assetAmountToScaled(assetHolding.amount, assetParams?.decimals).toStringAsFixed(3)} ${assetParams?.unitName}")
+                            "${assetAmountToScaled(assetHolding.amount, assetParams?.decimals).toStringAsFixed(3)} ${assetParams?.unitName}",
+                            style: const TextStyle(color: Color(0xFF25CED1)),
+                          )
                         ])),
                 Flexible(
                     flex: 5,
@@ -46,11 +55,26 @@ class AssetsView extends StatelessWidget {
                           Text(
                               "US\$ ${(assetAmountToScaled(assetHolding.amount, assetParams?.decimals) * (model.assetPrices[asset?.index] ?? 0)).toStringAsFixed(2)}",
                               style: const TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w700))
+                                  fontSize: 16, fontWeight: FontWeight.w300))
                         ])),
                 const SizedBox(width: 10)
-              ]));
-        })
+              ]),
+              const SizedBox(
+                height: 15,
+              ),
+              Container(
+                height: 0.2,
+                width: double.infinity,
+                color: Colors.white,
+                margin:
+                    EdgeInsets.symmetric(horizontal: AppLayout.getWidth(20)),
+              )
+            ]);
+          },
+        ),
+        const SizedBox(
+          height: 30,
+        ),
       ]);
     });
   }

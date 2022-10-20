@@ -36,6 +36,7 @@ class ConnectWalletState extends State<ConnectWallet> {
             onPressed: () {
               if (model.userAddress == null) {
                 showDialog(
+                    barrierColor: const Color(0xCC161616),
                     context: context,
                     builder: (BuildContext context) {
                       return AlertDialog(
@@ -43,9 +44,12 @@ class ConnectWalletState extends State<ConnectWallet> {
                         backgroundColor: const Color(0xFF505050),
                         elevation: 20,
                         shape: SmoothRectangleBorder(
+                            side: const BorderSide(
+                                width: 2, color: Color(0xFF25CED1)),
                             borderRadius: SmoothBorderRadius(
-                                cornerRadius: 22, cornerSmoothing: 1)),
+                                cornerRadius: 15, cornerSmoothing: 1)),
                         content: TextField(
+                          cursorColor: const Color(0xFF505050),
                           style: const TextStyle(color: Color(0xFF161616)),
                           onChanged: (text) {
                             inputAddress = text;

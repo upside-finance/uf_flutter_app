@@ -43,7 +43,7 @@ class InvestScreenState extends State<InvestScreen> {
                             fontWeight: FontWeight.w300),
                       ),
                       Text(
-                        "2345.67",
+                        "****",
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 30,
