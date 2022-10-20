@@ -55,6 +55,6 @@ class MyScaffoldState extends State<MyScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    return BottomBar();
+    return const BottomBar();
   }
 }
