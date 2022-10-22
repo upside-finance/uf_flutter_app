@@ -5,7 +5,7 @@ import 'package:uf_flutter_app/utils/app_layout.dart';
 List<Map<String, dynamic>> assetHoldings = [
   {'key': 0, 'token': 'USDC', 'quantity': 200, 'usd_val': 199.9},
   {'key': 1, 'token': 'ALGO', 'quantity': 400, 'usd_val': 100},
-  {'key': 2, 'token': 'rUFt', 'quantity': 1200, 'usd_val': 10},
+  {'key': 2, 'token': 'rUFt', 'quantity': 1200, 'usd_val': 30},
   {'key': 3, 'token': 'gALGO', 'quantity': 55, 'usd_val': 160.5},
   {'key': 4, 'token': 'NURD', 'quantity': 2040, 'usd_val': 23},
   {'key': 5, 'token': 'GIL0001', 'quantity': 1, 'usd_val': 2},
@@ -21,7 +21,6 @@ List<Color> chartColors = [
 ];
 
 //top 5 assets
-
 assetHoldingsOrder() {
   var sortedAssetHoldings = assetHoldings;
   sortedAssetHoldings.sort((a, b) => (b['usd_val'].compareTo(a['usd_val'])));
@@ -43,6 +42,17 @@ sumOfAssets() {
   return sumOfAssets;
 }
 
+//number of elements less than 5% of sumOfAssets
+lessThanPercent() {
+  var lessThanPercent = 0;
+  assetHoldingsOrder().forEach((element) {
+    element['usd_val'] / sumOfAssets() <= 0.05
+        ? lessThanPercent++
+        : lessThanPercent;
+  });
+  return lessThanPercent;
+}
+
 final double chartWidth = AppLayout.getWidth(350);
 final double chartHeight = AppLayout.getHeight(45);
 
@@ -57,7 +67,7 @@ class _TrackChartState extends State<TrackChart> {
   @override
   Widget build(BuildContext context) {
     var sortedAssetHoldings = assetHoldingsOrder();
-    // var sortedAssetWithKeys = assetHoldingsOrder().asMap();
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -70,9 +80,6 @@ class _TrackChartState extends State<TrackChart> {
             decoration: ShapeDecoration(
                 shape: SmoothRectangleBorder(
                   borderAlign: BorderAlign.inside,
-                  // side: const BorderSide(
-                  //     color: Colors.white, width: 1, strokeAlign: StrokeAlign.outside),
-
                   borderRadius: SmoothBorderRadius(
                     cornerRadius: 12,
                     cornerSmoothing: 0.5,
@@ -92,53 +99,80 @@ class _TrackChartState extends State<TrackChart> {
                       (asset) => SizedBox(
                         width: chartWidth * asset['usd_val'] / sumOfAssets(),
                         child: Container(
-                          color: chartColors[asset['key']],
+                          color: asset['usd_val'] / sumOfAssets() <= 0.05
+                              ? const Color(0xFF084B83)
+                              : chartColors[asset['key']],
                         ),
                       ),
                     )
                     .toList())),
         Positioned(
           top: chartHeight * 1.45,
-          left: 20,
+          left: 15,
           width: chartWidth,
           height: chartHeight + 10,
           child: Row(
             children: sortedAssetHoldings
                 .map<Widget>(
-                  (asset) => Container(
+                  (asset) => SizedBox(
                     // width: chartWidth,
                     // height: chartHeight + 50,
                     width: (asset['usd_val'] / sumOfAssets()) * chartWidth,
-                    // top: 200,
-                    // alignment: Alignment.topLeft,
-                    // left: asset['usd_val'] +
-                    //     chartWidth * asset['usd_val'] / (2 * sumOfAssets()),
-                    //top: chartHeight + 20,
+
                     child: Column(
-                      children: [
-                        SizedBox(
-                          height: 30,
-                          width: 2,
-                          child: Container(color: const Color(0xFF494952)),
-                        ),
-                        SizedBox(
-                          height: 7,
-                          width: 7,
-                          child: Container(
-                            decoration: const BoxDecoration(
-                                color: Color(0xFF494952),
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(10))),
-                          ),
-                        ),
-                        Text(
-                          asset['token'].toString(),
-                          style: const TextStyle(
-                              color: Color(0xFFA0A0A0),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400),
-                        )
-                      ],
+                      // mainAxisSize: MainAxisSize.min,
+                      children: (asset['usd_val'] / sumOfAssets()) >= 0.05
+                          ? [
+                              SizedBox(
+                                height: 30,
+                                width: 1,
+                                child:
+                                    Container(color: const Color(0xFF494952)),
+                              ),
+                              SizedBox(
+                                height: 6,
+                                width: 6,
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                      color: Color(0xFF494952),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10))),
+                                ),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  overflow: TextOverflow.ellipsis,
+                                  asset['token'].toString(),
+                                  style: const TextStyle(
+                                      color: Color(0xFFA0A0A0),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400),
+                                ),
+                              )
+                            ]
+
+                          //If the asset is less than 5% and is last, an ellipsis will show
+                          : (asset == sortedAssetHoldings.last
+                              ? [
+                                  Stack(
+                                    alignment: Alignment.topCenter,
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      SizedBox(
+                                          height: 20,
+                                          width: 1,
+                                          child: Container(
+                                              color: const Color(0xFF494952))),
+                                      const Positioned(
+                                          top: 15,
+                                          width: 20,
+                                          child: Text("…",
+                                              style: TextStyle(
+                                                  color: Color(0xFFA0A0A0))))
+                                    ],
+                                  ),
+                                ]
+                              : [const Text('')]),
                     ),
                   ),
                 )

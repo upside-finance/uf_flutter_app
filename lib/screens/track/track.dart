@@ -90,7 +90,7 @@ class TrackScreenState extends State<TrackScreen> {
             ),
             _selectedIndex == 0 ? const TrackChart() : const Text(""),
             const SizedBox(
-              height: 10,
+              height: 50,
             ),
             Expanded(
                 child: ShaderMask(
