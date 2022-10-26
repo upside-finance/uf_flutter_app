@@ -212,60 +212,64 @@ class AppModel extends ChangeNotifier {
   }
 
   void fetchTMPositions() async {
-    await Future.wait([
-      ...?accountInformation?.assets.map((assetHolding) async {
-        var creatorAdd = assets[assetHolding.assetId]?.params.creator;
+    try {
+      await Future.wait([
+        ...?accountInformation?.assets.map((assetHolding) async {
+          var creatorAdd = assets[assetHolding.assetId]?.params.creator;
 
-        if (creatorAdd != null) {
-          final acctInfo = await algorand.getAccountByAddress(creatorAdd);
+          if (creatorAdd != null) {
+            final acctInfo = await algorand.getAccountByAddress(creatorAdd);
 
-          for (var appLocalState in acctInfo.appsLocalState) {
-            if (appLocalState.id == 552635992) {
-              var parsedLocalState = convertTKVtoMap(appLocalState.keyValue);
+            for (var appLocalState in acctInfo.appsLocalState) {
+              if (appLocalState.id == 552635992) {
+                var parsedLocalState = convertTKVtoMap(appLocalState.keyValue);
 
-              var asset_1_id = parsedLocalState["a1"];
-              var asset_2_id = parsedLocalState["a2"];
+                var asset_1_id = parsedLocalState["a1"];
+                var asset_2_id = parsedLocalState["a2"];
 
-              await Future.wait(
-                  [fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
+                await Future.wait(
+                    [fetchAsset(asset_1_id), fetchAsset(asset_2_id)]);
 
-              var asset_1_reserves = parsedLocalState["s1"];
-              var asset_2_reserves = parsedLocalState["s2"];
-              var issued_liquidity = parsedLocalState["ilt"];
+                var asset_1_reserves = parsedLocalState["s1"];
+                var asset_2_reserves = parsedLocalState["s2"];
+                var issued_liquidity = parsedLocalState["ilt"];
 
-              double poolShare = assetHolding.amount / issued_liquidity;
+                double poolShare = assetHolding.amount / issued_liquidity;
 
-              double asset_1_amount = assetAmountToScaled(
-                  poolShare * asset_1_reserves,
-                  assets[asset_1_id]?.params.decimals);
-              double asset_2_amount = assetAmountToScaled(
-                  poolShare * asset_2_reserves,
-                  assets[asset_2_id]?.params.decimals);
+                double asset_1_amount = assetAmountToScaled(
+                    poolShare * asset_1_reserves,
+                    assets[asset_1_id]?.params.decimals);
+                double asset_2_amount = assetAmountToScaled(
+                    poolShare * asset_2_reserves,
+                    assets[asset_2_id]?.params.decimals);
 
-              double asset_1_in_usd =
-                  asset_1_amount * (assetPrices[asset_1_id] ?? 0);
-              double asset_2_in_usd =
-                  asset_2_amount * (assetPrices[asset_2_id] ?? 0);
+                double asset_1_in_usd =
+                    asset_1_amount * (assetPrices[asset_1_id] ?? 0);
+                double asset_2_in_usd =
+                    asset_2_amount * (assetPrices[asset_2_id] ?? 0);
 
-              double marketValue = asset_1_in_usd + asset_2_in_usd;
+                double marketValue = asset_1_in_usd + asset_2_in_usd;
 
-              positions.add(LPposition(
-                  marketValue: marketValue,
-                  poolShare: poolShare,
-                  asset_1_id: asset_1_id,
-                  asset_1_amount: asset_1_amount,
-                  asset_1_in_usd: asset_1_in_usd,
-                  asset_2_id: asset_2_id,
-                  asset_2_amount: asset_2_amount,
-                  asset_2_in_usd: asset_2_in_usd,
-                  protocol: Protocol.tinyman));
+                positions.add(LPposition(
+                    marketValue: marketValue,
+                    poolShare: poolShare,
+                    asset_1_id: asset_1_id,
+                    asset_1_amount: asset_1_amount,
+                    asset_1_in_usd: asset_1_in_usd,
+                    asset_2_id: asset_2_id,
+                    asset_2_amount: asset_2_amount,
+                    asset_2_in_usd: asset_2_in_usd,
+                    protocol: Protocol.tinyman));
+              }
             }
           }
-        }
-      })
-    ]);
+        })
+      ]);
 
-    notifyListeners();
+      notifyListeners();
+    } catch (e) {
+      print(e);
+    }
   }
 
   void fetchPFpositions() async {
