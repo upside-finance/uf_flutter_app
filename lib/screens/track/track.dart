@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:uf_flutter_app/widgets/track_chart.dart';
 import '../../utils/app_layout.dart';
 import '../../widgets/connect_wallet.dart';
 import 'package:provider/provider.dart';
@@ -86,6 +87,10 @@ class TrackScreenState extends State<TrackScreen> {
                             label: Text(entry.value.choiceName))))
                     .toList(),
               ],
+            ),
+            _selectedIndex == 0 ? const TrackChart() : const Text(""),
+            const SizedBox(
+              height: 50,
             ),
             Expanded(
                 child: ShaderMask(
