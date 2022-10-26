@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:uf_flutter_app/screens/invest/invest.dart';
+import 'package:uf_flutter_app/screens/invest/swap.dart';
 import 'package:uf_flutter_app/screens/track/track.dart';
 import 'package:uf_flutter_app/utils/app_layout.dart';
 
@@ -17,7 +18,7 @@ class _BottomBarState extends State<BottomBar> {
   static final List<Widget> _widgetOptions = <Widget>[
     const TrackScreen(),
     const InvestScreen(),
-    const Text("Swap screen coming soon"),
+    const SwapPage(),
     const Text("Profile screen coming soon"),
   ];
 

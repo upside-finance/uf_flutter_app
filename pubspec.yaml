@@ -49,6 +49,8 @@ dependencies:
   font_awesome_flutter: ^10.2.1
   figma_squircle: ^0.5.3
   fl_chart: ^0.55.2
+  dropdown_search: ^5.0.3
+  dio: ^4.0.0
 
 dev_dependencies:
   flutter_test:
@@ -79,6 +81,11 @@ flutter:
     - assets/images/defaultToken.png
     - assets/images/tinyman_app_icon.png
     - assets/images/pactfi_app_icon.png
+    - assets/images/usdc.png
+    - assets/images/tusd.png
+    - assets/images/algo.png
+    - assets/images/galgo.png
+    - assets/tokens.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
