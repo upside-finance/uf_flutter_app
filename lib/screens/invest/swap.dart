@@ -106,11 +106,19 @@ class _SwapPageState extends State<SwapPage> {
                                     color: const Color(0xFF505050),
                                     width: AppLayout.getHeight(3)),
                                 borderRadius: BorderRadius.circular(5),
-                                color: Color(0xFF457B9D),
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: <Color>[
+                                    Color(0xFF25D193),
+                                    Color(0xFF25CED1),
+                                  ],
+                                ),
                               ),
-                              child: FaIcon(
+                              child: const FaIcon(
                                 FontAwesomeIcons.arrowDown,
                                 size: 18,
+                                color: Color(0xFF505050),
                               ),
                             ))
                       ],
