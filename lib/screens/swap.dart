@@ -10,8 +10,8 @@ import 'package:http/http.dart';
 import 'package:uf_flutter_app/utils/token_list.dart';
 import 'package:uf_flutter_app/widgets/swap_widget.dart';
 
-import '../../utils/app_layout.dart';
-import '../../widgets/connect_wallet.dart';
+import '../utils/app_layout.dart';
+import '../widgets/connect_wallet.dart';
 
 class SwapPage extends StatefulWidget {
   const SwapPage({super.key});

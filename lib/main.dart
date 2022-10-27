@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uf_flutter_app/screens/bottom_bar.dart';
+import 'package:uf_flutter_app/utils/app_layout.dart';
 import './app_model.dart';
 
 void main() {

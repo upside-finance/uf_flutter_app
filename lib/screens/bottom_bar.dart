@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:uf_flutter_app/screens/explore.dart';
 import 'package:uf_flutter_app/screens/invest/invest.dart';
-import 'package:uf_flutter_app/screens/invest/swap.dart';
+import 'package:uf_flutter_app/screens/swap.dart';
 import 'package:uf_flutter_app/screens/track/track.dart';
 import 'package:uf_flutter_app/utils/app_layout.dart';
 
@@ -19,6 +20,7 @@ class _BottomBarState extends State<BottomBar> {
     const TrackScreen(),
     const InvestScreen(),
     const SwapPage(),
+    const ExploreScreen(),
     const Text("Profile screen coming soon"),
   ];
 
@@ -34,7 +36,8 @@ class _BottomBarState extends State<BottomBar> {
       backgroundColor: const Color(0xFF2E2E2E),
       body: Center(child: _widgetOptions[_selectedIndex]),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.only(top: AppLayout.getHeight(7)),
+        // height: AppLayout.getHeight(85),
+        padding: EdgeInsets.only(top: AppLayout.getHeight(5)),
         decoration: const BoxDecoration(
           color: Color(0xFF161616),
         ),
@@ -42,11 +45,11 @@ class _BottomBarState extends State<BottomBar> {
             backgroundColor: const Color(0xFF161616),
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
-            elevation: 10,
             showSelectedLabels: true,
             showUnselectedLabels: true,
-            selectedFontSize: 12,
-            unselectedFontSize: 12,
+            selectedLabelStyle: const TextStyle(fontSize: 9, height: 2.5),
+            selectedIconTheme: const IconThemeData(size: 30),
+            unselectedFontSize: 9,
             selectedItemColor: const Color(0xFF25CED1),
             type: BottomNavigationBarType.fixed,
             unselectedItemColor: const Color(0xFFE4E4E4),
@@ -56,15 +59,9 @@ class _BottomBarState extends State<BottomBar> {
                   icon: FaIcon(
                     FontAwesomeIcons.chartColumn,
                   ),
-                  activeIcon: FaIcon(
-                    FontAwesomeIcons.chartColumn,
-                  ),
                   label: "Track"),
               BottomNavigationBarItem(
                   icon: FaIcon(
-                    FontAwesomeIcons.coins,
-                  ),
-                  activeIcon: FaIcon(
                     FontAwesomeIcons.coins,
                   ),
                   label: "Invest"),
@@ -72,15 +69,14 @@ class _BottomBarState extends State<BottomBar> {
                   icon: FaIcon(
                     FontAwesomeIcons.arrowRightArrowLeft,
                   ),
-                  activeIcon: FaIcon(
-                    FontAwesomeIcons.arrowRightArrowLeft,
-                  ),
                   label: "Swap"),
               BottomNavigationBarItem(
                   icon: FaIcon(
-                    FontAwesomeIcons.wrench,
+                    FontAwesomeIcons.compass,
                   ),
-                  activeIcon: FaIcon(
+                  label: "Explore"),
+              BottomNavigationBarItem(
+                  icon: FaIcon(
                     FontAwesomeIcons.wrench,
                   ),
                   label: "Settings"),
