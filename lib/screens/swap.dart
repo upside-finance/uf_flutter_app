@@ -1,13 +1,6 @@
-import 'package:dio/dio.dart';
-
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:http/http.dart';
-import 'package:uf_flutter_app/utils/token_list.dart';
 import 'package:uf_flutter_app/widgets/swap_widget.dart';
 
 import '../utils/app_layout.dart';
