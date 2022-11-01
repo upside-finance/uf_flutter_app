@@ -466,4 +466,38 @@ class AppModel extends ChangeNotifier {
       print(e);
     }
   }
+
+  void fetchAlammexQuote(
+      int fromASAid, int toASAid, bool isFixedInput, int amount) async {
+    final Map<String, dynamic> params = {
+      // "algodUri": algorand.algodClient.client.options.baseUrl,
+      // "algodToken": algorand
+      //     .algodClient.client.options.headers[AlgodClient.ALGOD_API_TOKEN],
+      // "algodPort": '',
+      "chain": "mainnet",
+      "atomicOnly": "false",
+      "amount": amount.toString(),
+      "type": isFixedInput ? "fixed-input" : "fixed-output",
+      "fromASAID": fromASAid.toString(),
+      "toASAID": toASAid.toString(),
+      // "apiKey": '',
+      "disabledProtocols": '',
+      "referrerAddress": ''
+    };
+
+    try {
+      final uri = Uri.https('app.alammex.com', '/api/quote', params);
+      print(uri.toString());
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        print(response.body);
+      } else {
+        throw Exception(
+            "Failed to fetch Alammex quote - Status code ${response.statusCode}");
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
 }
