@@ -161,14 +161,18 @@ class AppModel extends ChangeNotifier {
   }
 
   void setUserAddress(String inputAddress) {
-    fbAnalytics?.setUserId(id: inputAddress);
-    userAddress = inputAddress;
-    prefs?.setString('userAddress', inputAddress);
-    notifyListeners();
-    fetchAccountInfo().then((_) {
-      fetchTMPositions();
-      fetchPFpositions();
-    });
+    try {
+      fbAnalytics?.setUserId(id: inputAddress);
+      userAddress = inputAddress;
+      prefs?.setString('userAddress', inputAddress);
+      notifyListeners();
+      fetchAccountInfo().then((_) {
+        fetchTMPositions();
+        fetchPFpositions();
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   void disconnectWallet() {
