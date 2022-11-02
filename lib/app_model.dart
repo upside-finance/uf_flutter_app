@@ -161,18 +161,14 @@ class AppModel extends ChangeNotifier {
   }
 
   void setUserAddress(String inputAddress) {
-    try {
+    fetchAccountInfo(inputAddress).then((_) {
       fbAnalytics?.setUserId(id: inputAddress);
       userAddress = inputAddress;
       prefs?.setString('userAddress', inputAddress);
       notifyListeners();
-      fetchAccountInfo().then((_) {
-        fetchTMPositions();
-        fetchPFpositions();
-      });
-    } catch (e) {
-      print(e);
-    }
+      fetchTMPositions();
+      fetchPFpositions();
+    }).catchError((e) => print(e));
   }
 
   void disconnectWallet() {
@@ -185,26 +181,24 @@ class AppModel extends ChangeNotifier {
     }
   }
 
-  Future<void> fetchAccountInfo() async {
-    if (userAddress != null) {
-      try {
-        var tempAccountInformation =
-            await algorand.getAccountByAddress(userAddress!);
-        tempAccountInformation.assets.add(AssetHolding(
-            amount: tempAccountInformation.amount,
-            assetId: 0,
-            creator: null,
-            isFrozen: false));
-        accountInformation = tempAccountInformation;
-        await Future.wait([
-          ...?accountInformation?.assets
-              .map((assetHolding) => fetchAsset(assetHolding.assetId))
-        ]);
+  Future<void> fetchAccountInfo(String inputAddress) async {
+    try {
+      var tempAccountInformation =
+          await algorand.getAccountByAddress(inputAddress);
+      tempAccountInformation.assets.add(AssetHolding(
+          amount: tempAccountInformation.amount,
+          assetId: 0,
+          creator: null,
+          isFrozen: false));
+      accountInformation = tempAccountInformation;
+      await Future.wait([
+        ...?accountInformation?.assets
+            .map((assetHolding) => fetchAsset(assetHolding.assetId))
+      ]);
 
-        notifyListeners();
-      } catch (e) {
-        print(e);
-      }
+      notifyListeners();
+    } catch (e) {
+      throw Exception(e);
     }
   }
 
