@@ -108,9 +108,7 @@ class TrackScreenState extends State<TrackScreen> {
                 ).createShader(bounds);
               },
               blendMode: BlendMode.dstOut,
-              child: Expanded(
-                child: choices[_selectedIndex].choiceWidget,
-              ),
+              child: choices[_selectedIndex].choiceWidget,
             )),
           ]));
     });
