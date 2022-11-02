@@ -46,8 +46,7 @@ class ConnectWalletState extends State<ConnectWallet> {
                         shape: SmoothRectangleBorder(
                             side: const BorderSide(
                                 width: 2, color: Color(0xFF25CED1)),
-                            borderRadius: SmoothBorderRadius(
-                                cornerRadius: 15, cornerSmoothing: 1)),
+                            borderRadius: SmoothBorderRadius(cornerRadius: 15)),
                         content: TextField(
                           cursorColor: const Color(0xFF505050),
                           style: const TextStyle(color: Color(0xFF161616)),

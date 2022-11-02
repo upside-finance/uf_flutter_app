@@ -93,23 +93,8 @@ class TrackScreenState extends State<TrackScreen> {
               height: 50,
             ),
             Expanded(
-                child: ShaderMask(
-              shaderCallback: (Rect bounds) {
-                return const LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color(0xFF2E2E2E),
-                    Colors.transparent,
-                    Colors.transparent,
-                    Color(0xFF2E2E2E),
-                  ],
-                  stops: [0.0, 0.02, 0.9, 1.0],
-                ).createShader(bounds);
-              },
-              blendMode: BlendMode.dstOut,
               child: choices[_selectedIndex].choiceWidget,
-            )),
+            ),
           ]));
     });
   }

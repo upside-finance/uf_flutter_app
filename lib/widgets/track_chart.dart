@@ -102,7 +102,6 @@ class _TrackChartState extends State<TrackChart> {
                     borderAlign: BorderAlign.inside,
                     borderRadius: SmoothBorderRadius(
                       cornerRadius: 12,
-                      cornerSmoothing: 0.5,
                     ),
                   ),
                   shadows: const [
