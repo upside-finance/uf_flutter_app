@@ -63,46 +63,52 @@ class InvestScreenState extends State<InvestScreen>
         appBar: AppBar(title: const ConnectWallet()),
         body: Column(
           children: [
+            //const AppBarWidget(),
             AnimatedContainer(
-              clipBehavior: Clip.hardEdge,
               height: isHidden ? 0 : 60,
-              decoration: const BoxDecoration(color: Color(0xFF2E2E2E)),
               duration: const Duration(milliseconds: 300),
-              child: Wrap(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppLayout.getWidth(20),
+              child: AnimatedOpacity(
+                // alignment: Alignment.topLeft,
+                // clipBehavior: Clip.hardEdge,
+                opacity: isHidden ? 0 : 1,
+                //decoration: const BoxDecoration(color: Color(0xFF2E2E2E)),
+                duration: const Duration(milliseconds: 300),
+                child: Wrap(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppLayout.getWidth(20),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Net worth",
+                            style: TextStyle(color: Colors.grey.shade400),
+                          ),
+                          Row(
+                            children: const [
+                              Text(
+                                "USD ",
+                                style: TextStyle(
+                                    color: Color(0xFF25CED1),
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w300),
+                              ),
+                              Text(
+                                "****",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w300),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Net worth",
-                          style: TextStyle(color: Colors.grey.shade400),
-                        ),
-                        Row(
-                          children: const [
-                            Text(
-                              "USD ",
-                              style: TextStyle(
-                                  color: Color(0xFF25CED1),
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w300),
-                            ),
-                            Text(
-                              "****",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w300),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             Expanded(
@@ -257,4 +263,79 @@ class InvestScreenState extends State<InvestScreen>
 
   @override
   bool get wantKeepAlive => true;
+}
+
+class AppBarWidget extends StatefulWidget {
+  const AppBarWidget({super.key});
+
+  @override
+  State<AppBarWidget> createState() => _AppBarWidgetState();
+}
+
+class _AppBarWidgetState extends State<AppBarWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    animationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 300));
+    animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 30,
+      child: SizeTransition(
+          sizeFactor: animationController,
+          axisAlignment: -1.0,
+          child: SizedBox(
+            height: 180,
+            child: Wrap(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AppLayout.getWidth(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Net worth",
+                        style: TextStyle(color: Colors.grey.shade400),
+                      ),
+                      Row(
+                        children: const [
+                          Text(
+                            "USD ",
+                            style: TextStyle(
+                                color: Color(0xFF25CED1),
+                                fontSize: 30,
+                                fontWeight: FontWeight.w300),
+                          ),
+                          Text(
+                            "****",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 30,
+                                fontWeight: FontWeight.w300),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )),
+    );
+  }
 }
