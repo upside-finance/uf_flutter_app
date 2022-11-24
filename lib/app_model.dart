@@ -117,11 +117,17 @@ class AppModel extends ChangeNotifier {
   SharedPreferences? prefs;
   final Map<String, Pool> pools = {};
   final Map<int, Asset> assets = {0: algoAsset};
+  final Map<int, Asset> assetList = {};
   final Map<int, double> assetPrices = {};
   Map<String, dynamic> asaIconList = {};
   List<LPposition> positions = [];
   AccountInformation? accountInformation;
   String? userAddress;
+
+  double? swapInputAmt;
+  double? swapOutputAmt;
+  int inputAssetID = 0;
+  int outputAssetID = 31566704;
 
   static const apiKey =
       'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -145,6 +151,7 @@ class AppModel extends ChangeNotifier {
   void init() async {
     fetchTMPools();
     fetchASAiconList();
+    fetchAssetsFromTM();
     await Future.wait([fetchAssetPrices(), fetchPactPools()]);
     setUserAddressFromSaved();
     fbApp = await Firebase.initializeApp(
@@ -201,6 +208,32 @@ class AppModel extends ChangeNotifier {
       } catch (e) {
         print(e);
       }
+    }
+  }
+
+  void fetchAssetsFromTM() async {
+    try {
+      final TMresponse = await http.get(Uri.parse(
+          'https://mainnet.analytics.tinyman.org/api/v1/assets/?limit=all'));
+
+      if (TMresponse.statusCode == 200) {
+        final TMassets = jsonDecode(TMresponse.body)['results'];
+        for (final assetInfo in TMassets) {
+          final assetParams = AssetParameters(
+              decimals: assetInfo['decimals'],
+              creator: '',
+              total: 0,
+              name: assetInfo['name'],
+              unitName: assetInfo['unit_name']);
+          final asset =
+              Asset(index: int.parse(assetInfo['id']), params: assetParams);
+          assetList[int.parse(assetInfo['id'])] = asset;
+        }
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -467,31 +500,76 @@ class AppModel extends ChangeNotifier {
     }
   }
 
-  void fetchAlammexQuote(
-      int fromASAid, int toASAid, bool isFixedInput, int amount) async {
+  void setInputOutputAsset(bool isInput, int asaID) {
+    if (isInput) {
+      inputAssetID = asaID;
+      swapOutputAmt = null;
+    } else {
+      outputAssetID = asaID;
+      swapInputAmt = null;
+    }
+    print(inputAssetID);
+    print(outputAssetID);
+    notifyListeners();
+  }
+
+  Future<void> fetchAlammexQuote(bool isFixedInput, double amount) async {
+    print("KKK");
+    if (isFixedInput) {
+      swapInputAmt = amount;
+      swapOutputAmt = null;
+    } else {
+      swapInputAmt = null;
+      swapOutputAmt = amount;
+    }
+
+    notifyListeners();
+
+    await Future.wait([fetchAsset(inputAssetID), fetchAsset(outputAssetID)]);
+
+    num amountScaled = isFixedInput
+        ? assetAmountToMicro(amount, assets[inputAssetID]?.params.decimals)
+        : assetAmountToMicro(amount, assets[outputAssetID]?.params.decimals);
+
     final Map<String, dynamic> params = {
-      // "algodUri": algorand.algodClient.client.options.baseUrl,
-      // "algodToken": algorand
-      //     .algodClient.client.options.headers[AlgodClient.ALGOD_API_TOKEN],
-      // "algodPort": '',
       "chain": "mainnet",
-      "atomicOnly": "false",
-      "amount": amount.toString(),
+      "algodUri": algorand.algodClient.client.options.baseUrl,
+      "algodToken": algorand
+          .algodClient.client.options.headers[AlgodClient.ALGOD_API_TOKEN],
+      "algodPort": '',
+      "amount": amountScaled.toString(),
       "type": isFixedInput ? "fixed-input" : "fixed-output",
-      "fromASAID": fromASAid.toString(),
-      "toASAID": toASAid.toString(),
-      // "apiKey": '',
+      "fromASAID": inputAssetID.toString(),
+      "toASAID": outputAssetID.toString(),
+      "apiKey": '9413c44c-e455-45fd-b220-8270cd516687',
       "disabledProtocols": '',
-      "referrerAddress": ''
+      "maxGroupSize": '',
+      "referrerAddress":
+          'WJNAU3PXHTGL6QXKZFONN2DLJTR5H7IBVXRCC5SI36MYWNHG7H7BHMBJBA',
+      "feeBps": '60',
+      "atomicOnly": "true",
     };
 
     try {
-      final uri = Uri.https('app.alammex.com', '/api/quote', params);
+      final uri = Uri.https('api.deflex.fi', '/api/fetchQuote', params);
       print(uri.toString());
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        print(response.body);
+        double quoteAmt = jsonDecode(response.body)['quote'];
+        double quoteScaled = assetAmountToScaled(
+            quoteAmt,
+            isFixedInput
+                ? assets[inputAssetID]?.params.decimals
+                : assets[outputAssetID]?.params.decimals);
+
+        if (isFixedInput) {
+          swapOutputAmt = quoteScaled;
+        } else {
+          swapInputAmt = quoteScaled;
+        }
+
+        notifyListeners();
       } else {
         throw Exception(
             "Failed to fetch Alammex quote - Status code ${response.statusCode}");

@@ -23,6 +23,10 @@ double assetAmountToScaled(num amount, int? decimals) {
   return amount / pow(10, decimals ?? 0);
 }
 
+num assetAmountToMicro(num amount, int? decimals) {
+  return amount * pow(10, decimals ?? 0);
+}
+
 Widget getASAiconWidget(Map<String, dynamic> asaIconList, int? id) {
   if (asaIconList.containsKey('$id')) {
     final String iconURL = 'https://asa-list.tinyman.org/assets/$id/icon.png';

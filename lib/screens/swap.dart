@@ -4,6 +4,7 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:uf_flutter_app/widgets/swap_widget.dart';
+import 'dart:async';
 
 import '../utils/app_layout.dart';
 import '../widgets/connect_wallet.dart';
@@ -16,11 +17,42 @@ class SwapPage extends StatefulWidget {
 }
 
 class _SwapPageState extends State<SwapPage> {
+  Timer? timer;
+  bool fetchRunning = false;
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  void cancelTimer() {
+    print("cancelTimer function");
+    timer?.cancel();
+    fetchRunning = false;
+  }
+
+  Future<void> fetchQuote(String value, bool isFixedInput) async {
+    if (!fetchRunning) {
+      fetchRunning = true;
+      await (Provider.of<AppModel>(context, listen: false)
+          .fetchAlammexQuote(isFixedInput, double.parse(value)));
+      fetchRunning = false;
+    }
+  }
+
+  void continouslyFetchAlammexQuote(String value, bool isFixedInput) {
+    timer?.cancel();
+    fetchQuote(value, isFixedInput).then((k) {
+      timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {
+        await fetchQuote(value, isFixedInput);
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppModel>(builder: (context, model, child) {
-      Provider.of<AppModel>(context, listen: false)
-          .fetchAlammexQuote(0, 31566704, true, 30000000);
       return Scaffold(
           appBar: AppBar(title: const ConnectWallet()),
           body: Column(
@@ -87,8 +119,15 @@ class _SwapPageState extends State<SwapPage> {
                             padding: EdgeInsets.all(AppLayout.getHeight(8)),
                             child: Column(
                               children: [
-                                SwapWidget(swap: "from"),
-                                SwapWidget(swap: "to"),
+                                SwapWidget(
+                                    swap: "from",
+                                    fetchQuote: continouslyFetchAlammexQuote,
+                                    cancelTimer: cancelTimer),
+                                SwapWidget(
+                                  swap: "to",
+                                  fetchQuote: continouslyFetchAlammexQuote,
+                                  cancelTimer: cancelTimer,
+                                ),
                               ],
                             ),
                           ),
