@@ -9,6 +9,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 
+import './widgets/pera_wallet_connect.dart';
+
 enum Protocol { tinyman, pact }
 
 const Map<Protocol, ProtocolDetail> protocolMap = {
@@ -140,6 +142,8 @@ class AppModel extends ChangeNotifier {
   FirebaseApp? fbApp;
   FirebaseAnalytics? fbAnalytics;
   FirebaseAnalyticsObserver? fbObserver;
+
+  PeraWalletConnect pwc = PeraWalletConnect();
 
   AppModel() {
     algorand = Algorand(

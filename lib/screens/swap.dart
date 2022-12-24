@@ -42,7 +42,7 @@ class _SwapPageState extends State<SwapPage> {
   }
 
   void continouslyFetchAlammexQuote(String value, bool isFixedInput) {
-    timer?.cancel();
+    cancelTimer();
     fetchQuote(value, isFixedInput).then((k) {
       timer = Timer.periodic(const Duration(seconds: 5), (Timer t) async {
         await fetchQuote(value, isFixedInput);

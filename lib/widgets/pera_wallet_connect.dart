@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:provider/provider.dart';
+import '../../app_model.dart';
 
 class PeraWalletConnect {
   String _bridge = '';
@@ -35,12 +37,13 @@ class PeraWalletConnect {
     }
   }
 
-  String generatePeraWalletAppDeepLink(String uri) {
+  Uri generatePeraWalletAppDeepLink(String uri) {
     if ((kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ||
         (!kIsWeb && Platform.isIOS)) {
-      return 'algorand-wc://wc?uri=${Uri.encodeComponent(uri)}';
+      return Uri(
+          scheme: 'algorand-wc', host: 'wc', queryParameters: {'uri': uri});
     } else {
-      return uri;
+      return Uri.parse(uri);
     }
   }
 
@@ -54,36 +57,39 @@ class PeraWalletConnect {
     _connector = WalletConnect(
         bridge: _bridge,
         clientMeta: const PeerMeta(
-          name: 'WalletConnect',
-          description: 'WalletConnect Developer App',
-          url: 'https://walletconnect.org',
+          name: 'UpsideFinance',
+          description: 'UpsideFinance mobile wallet',
+          url: 'https://upsidefinance.io/',
           icons: [
-            'https://gblobscdn.gitbook.com/spaces%2F-LJJeCjcLrr53DcT1Ml7%2Favatar.png?alt=media'
+            'https://pbs.twimg.com/profile_images/1598063211999367175/7KQ6aBQv_400x400.jpg'
           ],
         ));
 
-    final session = await _connector?.createSession(
+    final sessionStatus = await _connector?.createSession(
         chainId: 4160,
-        onDisplayUri: (uri) async {
-          final Uri link = Uri.parse(generatePeraWalletAppDeepLink(uri));
-          await showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                // return SimpleDialog(title: Text(link.toString()));
-                return Column(children: [
-                  Text(link.toString()),
-                  Container(
-                      decoration: const BoxDecoration(color: Colors.amber),
-                      child: QrImage(
-                        data: link.toString(),
-                        version: QrVersions.auto,
-                        size: 200.0,
-                      ))
-                ]);
-              });
-          launchUrl(link);
+        onDisplayUri: (uri) {
+          launchUrl(generatePeraWalletAppDeepLink(uri));
+
+          //   showDialog(
+          //       context: context,
+          //       builder: (BuildContext context) {
+          //         // return SimpleDialog(title: Text(link.toString()));
+          //         return Column(children: [
+          //           Text(link.toString()),
+          //           Container(
+          //               decoration: const BoxDecoration(color: Colors.amber),
+          //               child: QrImage(
+          //                 data: link.toString(),
+          //                 version: QrVersions.auto,
+          //                 size: 200.0,
+          //               ))
+          //         ]);
+          // });
         });
 
-    return 'blah';
+    if (sessionStatus?.accounts[0] != null) {
+      Provider.of<AppModel>(context, listen: false)
+          .setUserAddress((sessionStatus?.accounts[0])!);
+    }
   }
 }
